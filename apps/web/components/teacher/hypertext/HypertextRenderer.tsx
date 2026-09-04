@@ -50,7 +50,7 @@ type HypertextRendererProps = {
     id: string;
     title: string;
     description?: string | null;
-    coverImageUrl: string | null;
+    coverImageUrl?: string | null;
     primaryColor: string;
     secondaryColor: string;
     fontFamily: string;
