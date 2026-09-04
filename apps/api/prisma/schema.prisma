@@ -1,0 +1,252 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(cuid())
+  name             String
+  email            String            @unique
+  password         String
+  role             Role              @default(TEACHER)
+  teacherType      TeacherType?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  hypertexts       Hypertext[]
+  hypertextAuthors HypertextAuthor[]
+
+  requests         UniversityRequest[]
+  careers          UserCareer[]
+}
+
+model University {
+  id           String    @id @default(cuid())
+  name         String
+  abbreviation String
+  description  String?
+  logoUrl      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  faculties    Faculty[]
+}
+
+model Faculty {
+  id           String     @id @default(cuid())
+  name         String
+  abbreviation String?
+  description  String?
+  logoUrl      String?
+  color        String?
+  universityId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  careers      Career[]
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+}
+
+model Career {
+  id           String       @id @default(cuid())
+  name         String
+  abbreviation String?
+  description  String?
+  logoUrl      String?
+  color        String?
+  facultyId    String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  faculty      Faculty      @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  subjects     Subject[]
+  users        UserCareer[]
+}
+
+model Subject {
+  id           String    @id @default(cuid())
+  name         String
+  abbreviation String?
+  description  String?
+  logoUrl      String?
+  color        String?
+
+  careerId     String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  hypertexts   Hypertext[]
+  career       Career    @relation(fields: [careerId], references: [id], onDelete: Cascade)
+}
+
+model UniversityRequest {
+  id             String        @id @default(cuid())
+  userId         String
+  universityName String
+  facultyName    String
+  careerName     String
+  status         RequestStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Hypertext {
+  id                         String   @id @default(cuid())
+  title                      String
+  description                String?
+  coverImageUrl              String?
+  isPublished                Boolean  @default(false)
+
+  slug String? @unique
+  
+  // Configuración visual
+  primaryColor   String        @default("#1A0407")
+  secondaryColor String        @default("#F8F6EB")
+  fontFamily     String        @default("Geist")
+  theme          HypertextTheme @default(LIGHT)
+
+  // Estructura académica propia de este hipertexto
+  academicStructure          Json?
+  academicStructureConfirmed Boolean  @default(false)
+
+  userId                     String
+  subjectId                  String
+
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  subject                    Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  user                       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  units                      Unit[]
+  authors                    HypertextAuthor[]
+
+  @@unique([subjectId, userId])
+}
+
+model HypertextAuthor {
+  id          String   @id @default(cuid())
+
+  hypertextId String
+  userId      String
+
+  hypertext   Hypertext @relation(fields: [hypertextId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+
+  @@unique([hypertextId, userId])
+}
+
+model Unit {
+  id          String   @id @default(cuid())
+  number      Int
+  title       String
+  objective   String?
+  imageUrl    String?
+  hypertextId String
+  hypertext   Hypertext @relation(fields: [hypertextId], references: [id], onDelete: Cascade)
+  topics      Topic[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([hypertextId, number])
+}
+
+model Topic {
+  id        String   @id @default(cuid())
+
+  number    String
+  title     String
+
+  unitId    String
+  unit      Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  subtopics Subtopic[]
+  materials Material[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([unitId, number])
+}
+
+model Subtopic {
+  id        String   @id @default(cuid())
+
+  number    String
+  title     String
+
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([topicId, number])
+}
+
+model Material {
+  id        String       @id @default(cuid())
+
+  name      String
+  type      MaterialType
+  url       String?
+  mimeType  String?
+  size      Int?
+
+  topicId   String
+  topic     Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+enum MaterialType {
+  DOCUMENT
+  PRESENTATION
+  PDF
+  VIDEO
+  AUDIO
+  IMAGE
+  ARTICLE
+  LINK
+  OTHER
+}
+
+model UserCareer {
+  id        String   @id @default(cuid())
+  userId    String
+  careerId  String
+
+  createdAt DateTime @default(now())
+
+  career    Career   @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, careerId])
+}
+
+enum Role {
+  SUPER_ADMIN
+  TEACHER
+}
+
+enum TeacherType {
+  ADJUNCT
+  FULL_TIME
+  OTHER
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+}
+
+enum HypertextTheme {
+  LIGHT
+  DARK
+}
