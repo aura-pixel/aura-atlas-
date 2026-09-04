@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { TeacherType } from "@prisma/client";
-
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -13,6 +11,15 @@ export function TeacherTypeForm() {
 
   const [teacherType, setTeacherType] =
     useState<TeacherType>();
+
+  const TeacherType = {
+  ADJUNCT: "ADJUNCT",
+  FULL_TIME: "FULL_TIME",
+  OTHER: "OTHER",
+} as const;
+
+type TeacherType =
+  (typeof TeacherType)[keyof typeof TeacherType];
 
   function handleContinue() {
     router.push("/auth/complete");
