@@ -275,7 +275,7 @@ function MaterialContent({
   const url = material.url
   ? material.url.startsWith("http")
     ? material.url
-    : `${API_URL}${material.url}`
+    : `${API_URL}/materials/file/${material.id}`
   : "";
 
 console.log("MATERIAL URL:", material.url);
@@ -534,6 +534,7 @@ function EmptyMaterial({
     subtle: string;
     border: string;
     softSurface: string;
+    softBorder: string;
   };
 }) {
   return (

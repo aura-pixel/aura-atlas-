@@ -4,15 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 
-import {
-  mkdir,
-  writeFile,
-} from "fs/promises";
-
-import {
-  extname,
-  join,
-} from "path";
+import { R2Service } from "../storage/r2.service";
 
 import { randomUUID } from "crypto";
 
@@ -21,19 +13,14 @@ import { ContentMatcher } from "../academic-structure/classifiers/content-matche
 import { PdfHypertextExtractor } from "./extractor/pdf-hypertext.extractor";
 
 
-const MATERIALS_UPLOAD_DIR = join(
-  process.cwd(),
-  "uploads",
-  "materials",
-);
-
 @Injectable()
 export class MaterialService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly contentMatcher: ContentMatcher,
-    private readonly pdfHypertextExtractor: PdfHypertextExtractor,
-  ) {}
+  private readonly prisma: PrismaService,
+  private readonly contentMatcher: ContentMatcher,
+  private readonly pdfHypertextExtractor: PdfHypertextExtractor,
+  private readonly r2Service: R2Service,
+) {}
 
   async prepareFiles(
   subjectId: string,
@@ -111,30 +98,19 @@ export class MaterialService {
   extractionError: string | null;
 }[] = [];
 
-await mkdir(
-  MATERIALS_UPLOAD_DIR,
-  {
-    recursive: true,
-  },
-);
 
 for (const file of files) {
 
-  const filename =
-  `${randomUUID()}${extname(file.originalname)}`;
+const filename =
+  `${randomUUID()}-${file.originalname}`;
 
-const filePath = join(
-  MATERIALS_UPLOAD_DIR,
+await this.r2Service.uploadFile(
   filename,
-);
-
-await writeFile(
-  filePath,
   file.buffer,
+  file.mimetype,
 );
 
-const url =
-  `/uploads/materials/${filename}`;
+const url = filename;
 
   let extractedText = "";
   let extractionError: string | null = null;
@@ -378,6 +354,14 @@ const url =
       materials,
     };
   }
+
+  async getMaterialById(materialId: string) {
+  return this.prisma.material.findUnique({
+    where: {
+      id: materialId,
+    },
+  });
+}
 
 
 }

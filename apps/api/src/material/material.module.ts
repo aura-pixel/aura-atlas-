@@ -7,6 +7,7 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { AcademicStructureModule } from "../academic-structure/academic-structure.module";
 
 import { PdfHypertextExtractor } from "./extractor/pdf-hypertext.extractor";
+import { R2Service } from "../storage/r2.service";
 
 @Module({
   imports: [
@@ -18,10 +19,11 @@ import { PdfHypertextExtractor } from "./extractor/pdf-hypertext.extractor";
     MaterialController,
   ],
 
-  providers: [
-    MaterialService,
-    PdfHypertextExtractor,
-  ],
+ providers: [
+  MaterialService,
+  PdfHypertextExtractor,
+  R2Service,
+],
 
   exports: [
     MaterialService,
