@@ -61,27 +61,27 @@ type HypertextRendererProps = {
     };
 
     subject: {
+  name: string;
+  abbreviation?: string | null;
+  logoUrl?: string | null;
+  color?: string | null;
+
+  career: {
+    name: string;
+    abbreviation?: string | null;
+
+    faculty: {
       name: string;
       abbreviation?: string | null;
-      logoUrl: string | null;
-      color: string | null;
 
-      career: {
+      university: {
         name: string;
-        abbreviation: string | null;
-
-        faculty: {
-          name: string;
-          abbreviation: string | null;
-
-          university: {
-            name: string;
-            abbreviation: string;
-            logoUrl: string | null;
-          };
-        };
+        abbreviation?: string | null;
+        logoUrl?: string | null;
       };
     };
+  };
+};
 
     units: Unit[];
   };
