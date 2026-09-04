@@ -60,7 +60,7 @@ export function UniversitySelector() {
     async function loadUniversities() {
       try {
         const data =
-          await get("/universities");
+  await get<University[]>("/universities");
 
         setUniversities(data);
       } finally {
