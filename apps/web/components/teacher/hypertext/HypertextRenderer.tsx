@@ -49,7 +49,7 @@ type HypertextRendererProps = {
   hypertext: {
     id: string;
     title: string;
-    description: string | null | undefined;
+    description?: string | null;
     coverImageUrl: string | null;
     primaryColor: string;
     secondaryColor: string;
