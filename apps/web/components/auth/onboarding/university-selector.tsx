@@ -72,36 +72,40 @@ export function UniversitySelector() {
   }, []);
 
   useEffect(() => {
-    if (!selectedUniversity) return;
+  if (!selectedUniversity) return;
 
-    async function loadFaculties() {
-      const data = await get(
-        `/faculties?universityId=${selectedUniversity.id}`,
-      );
+  const universityId = selectedUniversity.id;
 
-      setFaculties(data);
-      setSelectedFaculty(null);
-      setSelectedCareer(null);
-      setCareers([]);
-    }
+  async function loadFaculties() {
+    const data = await get<Faculty[]>(
+      `/faculties?universityId=${universityId}`,
+    );
 
-    loadFaculties();
-  }, [selectedUniversity]);
+    setFaculties(data);
+    setSelectedFaculty(null);
+    setSelectedCareer(null);
+    setCareers([]);
+  }
+
+  loadFaculties();
+}, [selectedUniversity]);
 
   useEffect(() => {
-    if (!selectedFaculty) return;
+  if (!selectedFaculty) return;
 
-    async function loadCareers() {
-      const data = await get(
-        `/careers?facultyId=${selectedFaculty.id}`,
-      );
+  const facultyId = selectedFaculty.id;
 
-      setCareers(data);
-      setSelectedCareer(null);
-    }
+  async function loadCareers() {
+    const data = await get<Career[]>(
+      `/careers?facultyId=${facultyId}`,
+    );
 
-    loadCareers();
-  }, [selectedFaculty]);
+    setCareers(data);
+    setSelectedCareer(null);
+  }
+
+  loadCareers();
+}, [selectedFaculty]);
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6">
