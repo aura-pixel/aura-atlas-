@@ -62,7 +62,7 @@ type HypertextRendererProps = {
 
     subject: {
       name: string;
-      abbreviation: string | null;
+      abbreviation?: string | null;
       logoUrl: string | null;
       color: string | null;
 
