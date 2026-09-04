@@ -41,7 +41,7 @@ type Unit = {
   id: string;
   number: number;
   title: string;
-  objective: string | null;
+  objective?: string | null;
   topics: Topic[];
 };
 
