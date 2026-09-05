@@ -156,7 +156,7 @@ export function HypertextRenderer({
 
   const getVisibleTopics = (unit: Unit) => {
     return unit.topics.filter(
-      (topic) => topic.materials.length > 0,
+      (topic) => (topic.materials?.length ?? 0) > 0,
     );
   };
 
