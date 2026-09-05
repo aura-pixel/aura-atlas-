@@ -42,7 +42,7 @@ type Unit = {
   number: number;
   title: string;
   objective?: string | null;
-  topics: Topic[];
+  topics?: Topic[];
 };
 
 type HypertextRendererProps = {
