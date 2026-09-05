@@ -131,9 +131,9 @@ export class SubjectsController {
   // ───────────────────────────────────────────
 
   @Get()
-  findAll() {
-    return this.subjectsService.findAll();
-  }
+findAll(@Req() req: any) {
+  return this.subjectsService.findAll(req.user);
+}
 
   // ───────────────────────────────────────────
   // Obtener una materia
