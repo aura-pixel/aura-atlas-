@@ -37,6 +37,7 @@ type UnitViewProps = {
   subjectName?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  theme?: "LIGHT" | "DARK";
   onBack?: () => void;
   onTopicSelect?: (topic: Topic) => void;
 };
