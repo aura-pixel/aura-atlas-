@@ -150,7 +150,7 @@ export function HypertextRenderer({
 
   const visibleUnits = hypertext.units.filter((unit) =>
     unit.topics.some(
-      (topic) => topic.materials.length > 0,
+      (topic) => (topic.materials?.length ?? 0) > 0,
     ),
   );
 
