@@ -18,7 +18,11 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { postForm, post } from "@/lib/api";
-import { AddContent, type AddedLink } from "./add-content";
+import {
+  AddContent,
+  type AddedLink,
+  type AddedVideo,
+} from "./add-content";
 
 
 type SuggestedTopic = {
