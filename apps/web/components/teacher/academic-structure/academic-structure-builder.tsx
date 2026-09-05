@@ -16,28 +16,9 @@ import { Button } from "@/components/ui/button";
 
 import { AcademicStructurePreview } from "./academic-structure-preview";
 
-type AcademicSubtopic = {
-  number: string;
-  title: string;
-};
-
-type AcademicTopic = {
-  number: string;
-  title: string;
-  subtopics: AcademicSubtopic[];
-};
-
-type AcademicUnit = {
-  number: number;
-  title: string;
-  objective?: string;
-  topics: AcademicTopic[];
-};
-
-type AcademicStructure = {
-  subjectObjective?: string;
-  units: AcademicUnit[];
-};
+import type {
+  AcademicStructure,
+} from "@/components/teacher/subject/types";
 
 type AcademicStructureResponse = {
   totalPages: number;
