@@ -149,16 +149,16 @@ export function HypertextRenderer({
   };
 
   const visibleUnits = hypertext.units.filter((unit) =>
-    unit.topics.some(
-      (topic) => (topic.materials?.length ?? 0) > 0,
-    ),
-  );
+  (unit.topics ?? []).some(
+    (topic) => (topic.materials?.length ?? 0) > 0,
+  ),
+);
 
   const getVisibleTopics = (unit: Unit) => {
-    return unit.topics.filter(
-      (topic) => (topic.materials?.length ?? 0) > 0,
-    );
-  };
+  return (unit.topics ?? []).filter(
+    (topic) => (topic.materials?.length ?? 0) > 0,
+  );
+};
 
   const scrollToSection = (
     sectionId: string,
