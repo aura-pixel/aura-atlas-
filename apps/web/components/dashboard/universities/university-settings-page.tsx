@@ -31,7 +31,7 @@ export function UniversitySettingsPage({
       </Link>
 
       <EntityHero
-        image={university.logoUrl}
+        image={university.logoUrl ?? undefined}
         title={university.name}
         subtitle={university.abbreviation}
         description="Configura y administra el contenido de esta universidad."
