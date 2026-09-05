@@ -35,7 +35,6 @@ interface AcademicStructure {
 export class SubjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Auxiliar reusable para validar permisos de carrera
   private async checkTeacherCareerAccess(userId: string, careerId: string) {
     const userCareer = await this.prisma.userCareer.findUnique({
       where: {
@@ -71,46 +70,36 @@ export class SubjectsService {
   }
 
   async update(
-  id: string,
-  dto: UpdateSubjectDto,
-  user: UserContext,
-  logoUrl?: string,
-) {
-  const subject =
-    await this.prisma.subject.findUnique({
+    id: string,
+    dto: UpdateSubjectDto,
+    user: UserContext,
+    logoUrl?: string
+  ) {
+    const subject = await this.prisma.subject.findUnique({
       where: { id },
-      select: {
-        careerId: true,
-      },
+      select: { careerId: true },
     });
 
-  if (!subject) {
-    throw new NotFoundException(
-      "Materia no encontrada.",
-    );
-  }
+    if (!subject) {
+      throw new NotFoundException("Materia no encontrada.");
+    }
 
-  if (user.role === "TEACHER") {
-    await this.checkTeacherCareerAccess(
-      user.id,
-      subject.careerId,
-    );
-  } else if (user.role !== "SUPER_ADMIN") {
-    throw new ForbiddenException(
-      "No tienes permisos para modificar materias.",
-    );
-  }
+    if (user.role === "TEACHER") {
+      await this.checkTeacherCareerAccess(user.id, subject.careerId);
+    } else if (user.role !== "SUPER_ADMIN") {
+      throw new ForbiddenException(
+        "No tienes permisos para modificar materias."
+      );
+    }
 
-  return this.prisma.subject.update({
-    where: { id },
-    data: {
-      ...dto,
-      ...(logoUrl !== undefined && {
-        logoUrl,
-      }),
-    },
-  });
-}
+    return this.prisma.subject.update({
+      where: { id },
+      data: {
+        ...dto,
+        ...(logoUrl !== undefined && { logoUrl }),
+      },
+    });
+  }
 
   async updateAcademicStructure(
     id: string,
@@ -118,13 +107,13 @@ export class SubjectsService {
     user: UserContext
   ) {
     const subject = await this.prisma.subject.findUnique({
-  where: { id },
-  select: {
-    careerId: true,
-    name: true,
-    description: true,
-  },
-});
+      where: { id },
+      select: {
+        careerId: true,
+        name: true,
+        description: true,
+      },
+    });
 
     if (!subject) {
       throw new NotFoundException("Materia no encontrada.");
@@ -139,27 +128,25 @@ export class SubjectsService {
     }
 
     let hypertext = await this.prisma.hypertext.findFirst({
-  where: {
-    subjectId: id,
-    userId: user.id,
-  },
-});
+      where: {
+        subjectId: id,
+        userId: user.id,
+      },
+    });
 
-if (!hypertext) {
-  hypertext = await this.prisma.hypertext.create({
-    data: {
-      title: `Hipertexto — ${subject.name}`,
-      description: subject.description,
-      userId: user.id,
-      subjectId: id,
-    },
-  });
-}
+    if (!hypertext) {
+      hypertext = await this.prisma.hypertext.create({
+        data: {
+          title: `Hipertexto — ${subject.name}`,
+          description: subject.description,
+          userId: user.id,
+          subjectId: id,
+        },
+      });
+    }
 
     return this.prisma.hypertext.update({
-      where: {
-        id: hypertext.id,
-      },
+      where: { id: hypertext.id },
       data: {
         academicStructure: structure,
         academicStructureConfirmed: false,
@@ -170,10 +157,7 @@ if (!hypertext) {
   async confirmAcademicStructure(id: string, user: UserContext) {
     const subject = await this.prisma.subject.findUnique({
       where: { id },
-      select: {
-        name: true,
-        careerId: true,
-      },
+      select: { name: true, careerId: true },
     });
 
     if (!subject) {
@@ -226,89 +210,88 @@ if (!hypertext) {
       );
     }
 
-    const result = await this.prisma.$transaction(async (tx) => {
-  for (const unitData of structure.units) {
-    const unit = await tx.unit.upsert({
-      where: {
-        hypertextId_number: {
-          hypertextId: hypertext.id,
-          number: unitData.number,
-        },
-      },
-      update: {
-        title: unitData.title,
-        objective: unitData.objective,
-      },
-      create: {
-        number: unitData.number,
-        title: unitData.title,
-        objective: unitData.objective,
-        hypertextId: hypertext.id,
-      },
-    });
-
-    if (Array.isArray(unitData.topics)) {
-      for (const topicData of unitData.topics) {
-        const topic = await tx.topic.upsert({
-          where: {
-            unitId_number: {
-              unitId: unit.id,
-              number: topicData.number,
+    const result = await this.prisma.$transaction(
+      async (tx) => {
+        for (const unitData of structure.units) {
+          const unit = await tx.unit.upsert({
+            where: {
+              hypertextId_number: {
+                hypertextId: hypertext.id,
+                number: unitData.number,
+              },
             },
-          },
-          update: {
-            title: topicData.title,
-          },
-          create: {
-            number: topicData.number,
-            title: topicData.title,
-            unitId: unit.id,
-          },
-        });
+            update: {
+              title: unitData.title,
+              objective: unitData.objective,
+            },
+            create: {
+              number: unitData.number,
+              title: unitData.title,
+              objective: unitData.objective,
+              hypertextId: hypertext.id,
+            },
+          });
 
-        if (topicData.subtopics?.length) {
-          for (const subtopicData of topicData.subtopics) {
-            await tx.subtopic.upsert({
-              where: {
-                topicId_number: {
-                  topicId: topic.id,
-                  number: subtopicData.number,
+          if (Array.isArray(unitData.topics)) {
+            for (const topicData of unitData.topics) {
+              const topic = await tx.topic.upsert({
+                where: {
+                  unitId_number: {
+                    unitId: unit.id,
+                    number: topicData.number,
+                  },
                 },
-              },
-              update: {
-                title: subtopicData.title,
-              },
-              create: {
-                number: subtopicData.number,
-                title: subtopicData.title,
-                topicId: topic.id,
-              },
-            });
+                update: { title: topicData.title },
+                create: {
+                  number: topicData.number,
+                  title: topicData.title,
+                  unitId: unit.id,
+                },
+              });
+
+              if (topicData.subtopics?.length) {
+                for (const subtopicData of topicData.subtopics) {
+                  await tx.subtopic.upsert({
+                    where: {
+                      topicId_number: {
+                        topicId: topic.id,
+                        number: subtopicData.number,
+                      },
+                    },
+                    update: { title: subtopicData.title },
+                    create: {
+                      number: subtopicData.number,
+                      title: subtopicData.title,
+                      topicId: topic.id,
+                    },
+                  });
+                }
+              }
+            }
           }
         }
-      }
-    }
-  }
 
-  const updatedHypertext = await tx.hypertext.update({
-    where: {
-      id: hypertext.id,
-    },
-    data: {
-      academicStructureConfirmed: true,
-    },
-  });
-
-  return updatedHypertext;
-});
+        return tx.hypertext.update({
+          where: { id: hypertext.id },
+          data: { academicStructureConfirmed: true },
+        });
+      },
+      { timeout: 30000 }
+    );
 
     return {
       message: "Estructura académica confirmada correctamente.",
       hypertext: result,
     };
-  }
+  } // <-- AHORA SÍ CIERRA CONFIRMACADEMICSTRUCTURE
 
-  async findAll() {
+  async findAll(user: UserContext) {
+    if (user.role !== "SUPER_ADMIN") {
+      throw new ForbiddenException(
+        "No tienes permisos para ver todas las materias."
+      );
+    }
+
     return this.prisma.subject.findMany({
       include: { career: true },
       orderBy: { createdAt: "desc" },
@@ -332,65 +315,55 @@ if (!hypertext) {
   }
 
   async findOne(id: string, user: UserContext) {
-  const subject = await this.prisma.subject.findUnique({
-    where: { id },
-    include: {
-      career: {
-        include: {
-          faculty: {
-            include: {
-              university: true,
+    const subject = await this.prisma.subject.findUnique({
+      where: { id },
+      include: {
+        career: {
+          include: {
+            faculty: {
+              include: {
+                university: true,
+              },
             },
           },
         },
-      },
-
-      hypertexts: {
-        where:
-          user.role === "TEACHER"
-            ? {
-                userId: user.id,
-              }
-            : undefined,
-
-        include: {
-          units: {
-            include: {
-              topics: {
-                include: {
-                  materials: true,
+        hypertexts: {
+          where:
+            user.role === "TEACHER"
+              ? { userId: user.id }
+              : undefined,
+          include: {
+            units: {
+              include: {
+                topics: {
+                  include: {
+                    materials: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!subject) {
-    throw new NotFoundException(
-      "Materia no encontrada."
+    if (!subject) {
+      throw new NotFoundException("Materia no encontrada.");
+    }
+
+    if (user.role === "SUPER_ADMIN") {
+      return subject;
+    }
+
+    if (user.role === "TEACHER") {
+      await this.checkTeacherCareerAccess(user.id, subject.careerId);
+      return subject;
+    }
+
+    throw new ForbiddenException(
+      "No tienes permisos para acceder a esta materia."
     );
   }
-
-  if (user.role === "SUPER_ADMIN") {
-    return subject;
-  }
-
-  if (user.role === "TEACHER") {
-    await this.checkTeacherCareerAccess(
-      user.id,
-      subject.careerId
-    );
-
-    return subject;
-  }
-
-  throw new ForbiddenException(
-    "No tienes permisos para acceder a esta materia."
-  );
-}
 
   async remove(id: string, user: UserContext) {
     if (user.role !== "SUPER_ADMIN") {
