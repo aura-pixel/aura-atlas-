@@ -34,7 +34,7 @@ type Topic = {
   number: string;
   title: string;
   subtopics?: Subtopic[];
-  materials: Material[];
+  materials?: Material[];
 };
 
 type Unit = {
