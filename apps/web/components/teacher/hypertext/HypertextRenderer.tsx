@@ -124,8 +124,8 @@ export function HypertextRenderer({
 
   const themeColors = {
     background: isDark
-      ? "#15171C"
-      : "#FFFFFF",
+  ? "#15171C"
+  : "#F7F8FA",
 
     foreground: isDark
       ? "#F4F6F9"
