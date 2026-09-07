@@ -308,12 +308,8 @@ async function handleCopyLink() {
   // Si es una portada ilustrada, usamos directamente su imagen.
   if (selectedCover.imageUrl) {
   newCoverImageUrl = selectedCover.imageUrl;
-} 
-
-  /*
-   * Para las portadas minimalistas conservamos
-   * nuestro sistema visual provisional.
-   */
+} else {
+    
   const svg = `
     <svg
       xmlns="http://www.w3.org/2000/svg"
