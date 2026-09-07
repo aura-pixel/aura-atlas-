@@ -167,7 +167,7 @@ export function HypertextRenderer({
       : "#E5E7EB",
   };
 
-  const visibleUnits = hypertext.units.filter((unit) =>
+  const visibleUnits = units.filter((unit) =>
   (unit.topics ?? []).some(
     (topic) => (topic.materials?.length ?? 0) > 0,
   ),
