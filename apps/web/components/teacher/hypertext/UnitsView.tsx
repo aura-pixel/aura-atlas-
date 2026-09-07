@@ -37,6 +37,7 @@ type UnitsViewProps = {
   subjectName?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  mode?: "editor" | "public";
   onUnitSelect?: (unit: Unit) => void;
 };
 
@@ -57,6 +58,7 @@ export function UnitsView({
   subjectName,
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
+  mode = "public",
   onUnitSelect,
 }: UnitsViewProps) {
   const [unitImages, setUnitImages] = useState<
