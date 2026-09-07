@@ -911,9 +911,9 @@ newCoverImageUrl = dataUrl;
               </p>
 
               <p className="mt-1 text-xs text-gray-500">
-                {hypertext.isPublished
-                  ? "Tu hipertexto está publicado."
-                  : "Tu hipertexto todavía no está publicado."}
+                {isPublished
+  ? "Tu hipertexto está publicado."
+  : "Tu hipertexto todavía no está publicado."}
               </p>
 
             </div>
