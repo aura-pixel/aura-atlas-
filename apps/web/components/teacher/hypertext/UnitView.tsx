@@ -38,6 +38,7 @@ type UnitViewProps = {
   primaryColor?: string;
   secondaryColor?: string;
   theme?: "LIGHT" | "DARK";
+  mode?: "editor" | "public";
   onBack?: () => void;
   onTopicSelect?: (topic: Topic) => void;
 };
@@ -47,6 +48,7 @@ export function UnitView({
   subjectName,
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
+  mode = "public",
   onBack,
   onTopicSelect,
 }: UnitViewProps) {
