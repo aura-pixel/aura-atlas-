@@ -397,6 +397,7 @@ async function handleCopyLink() {
   encodeURIComponent(svg);
 
 newCoverImageUrl = dataUrl;
+  }
     try {
   await patch(
     `/hypertexts/${hypertext.id}/configuration`,
