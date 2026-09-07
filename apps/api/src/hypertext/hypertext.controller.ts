@@ -46,13 +46,14 @@ export class HypertextController {
     @Param("id") id: string,
     @Body()
     body: {
-      title?: string;
-      description?: string | null;
-      primaryColor?: string;
-      secondaryColor?: string;
-      fontFamily?: string;
-      theme?: "LIGHT" | "DARK";
-    },
+  title?: string;
+  description?: string | null;
+  coverImageUrl?: string | null;
+  primaryColor?: string;
+  secondaryColor?: string;
+  fontFamily?: string;
+  theme?: "LIGHT" | "DARK";
+},
     @Req() req: any,
   ) {
     return this.hypertextService.updateConfiguration(
