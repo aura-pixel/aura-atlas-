@@ -800,6 +800,7 @@ export function HypertextRenderer({
     hypertext.secondaryColor
   }
   mode={mode}
+  onUnitImageChange={handleUnitImageChange}
   onUnitSelect={openUnit}
 />
 </section>
