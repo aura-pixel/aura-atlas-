@@ -305,9 +305,7 @@ export function UnitsView({
                         secondaryColor={
                           secondaryColor
                         }
-                        onClick={() =>
-                          openImagePicker(
-                            unit.id,
+                        onClick={mode === "editor" ? () => openImagePicker(unit.id) : undefined}
                           )
                         }
                       />
@@ -470,9 +468,7 @@ export function UnitsView({
                         secondaryColor={
                           secondaryColor
                         }
-                        onClick={() =>
-                          openImagePicker(
-                            unit.id,
+                        onClick={mode === "editor" ? () => openImagePicker(unit.id) : undefined}
                           )
                         }
                       />
