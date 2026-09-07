@@ -32,63 +32,6 @@ type Palette = {
   secondary: string;
 };
 
-const PALETTES: Palette[] = [
-  {
-    id: "olive",
-    name: "Olive Green",
-    primary: "#4D694E",
-    secondary: "#FFF3D5",
-  },
-  {
-    id: "teal",
-    name: "Teal",
-    primary: "#008080",
-    secondary: "#F5F5DC",
-  },
-  {
-    id: "cherry",
-    name: "Cherry",
-    primary: "#890149",
-    secondary: "#F3F3E7",
-  },
-  {
-    id: "mocha",
-    name: "Mocha",
-    primary: "#5E3F27",
-    secondary: "#FFDDEF",
-  },
-  {
-    id: "vanilla-lilac",
-    name: "Vanilla Lilac",
-    primary: "#CBCFF4",
-    secondary: "#FFF9DC",
-  },
-  {
-    id: "yellow-sky",
-    name: "Yellow Sky",
-    primary: "#E8CBEE",
-    secondary: "#CBE8F0",
-  },
-  {
-    id: "orange-lemon",
-    name: "Orange Dream",
-    primary: "#EB9F6E",
-    secondary: "#FFEABD",
-  },
-  {
-    id: "vanilla-cocoa",
-    name: "Vanilla Cocoa",
-    primary: "#EFCEDB",
-    secondary: "#4F2B1F",
-  },
-  {
-    id: "east-bay",
-    name: "East Bay",
-    primary: "#474C80",
-    secondary: "#F8F7E2",
-  },
-];
-
 const FONT_OPTIONS = [
   {
     id: "Alegreya",
@@ -137,42 +80,49 @@ type CoverOption = {
 
 const COVER_OPTIONS: CoverOption[] = [
   {
-    id: "lavender",
-    name: "Lavanda",
-    background: "linear-gradient(135deg, #F3EFFF, #E6E0FF)",
-    accent: "#7D5DFF",
+    id: "petal",
+    name: "Pétalo",
+    background:
+      "linear-gradient(135deg, #FDE2E4, #FBECEF)",
+    accent: "#8A3F5D",
+  },
+  {
+    id: "rose",
+    name: "Rosé",
+    background:
+      "linear-gradient(135deg, #FAD2E1, #F8E4EC)",
+    accent: "#8A3F5D",
   },
   {
     id: "sage",
-    name: "Sage",
-    background: "linear-gradient(135deg, #EEF4EC, #DCE9DD)",
-    accent: "#4D694E",
+    name: "Salvia",
+    background:
+      "linear-gradient(135deg, #E2ECE9, #EEF4F1)",
+    accent: "#4F6D5A",
   },
   {
-    id: "sky",
-    name: "Cielo",
-    background: "linear-gradient(135deg, #EFF8FA, #D5EDF2)",
-    accent: "#008080",
+    id: "breeze",
+    name: "Brisa",
+    background:
+      "linear-gradient(135deg, #BEE1E6, #E5F4F6)",
+    accent: "#3F7180",
   },
   {
-    id: "cherry",
-    name: "Cherry",
-    background: "linear-gradient(135deg, #F8EAF1, #F1D4E2)",
-    accent: "#890149",
+    id: "cloud",
+    name: "Nube",
+    background:
+      "linear-gradient(135deg, #DFE7FD, #EEF2FF)",
+    accent: "#4E5A78",
   },
   {
     id: "peach",
     name: "Durazno",
-    background: "linear-gradient(135deg, #FFF1E7, #FFE0C8)",
-    accent: "#EB9F6E",
-  },
-  {
-    id: "night",
-    name: "Noche",
-    background: "linear-gradient(135deg, #25283A, #161820)",
-    accent: "#CBCFF4",
+    background:
+      "linear-gradient(135deg, #F6D7C3, #FCEBE0)",
+    accent: "#9A5B32",
   },
 ];
+  
 
 const ILLUSTRATED_COVERS = [
   "/hypertext/covers/1.png",
@@ -183,6 +133,8 @@ const ILLUSTRATED_COVERS = [
   "/hypertext/covers/6.png",
   "/hypertext/covers/7.png",
   "/hypertext/covers/8.png",
+  "/hypertext/covers/9.png",
+  "/hypertext/covers/10.png",
 ];
 
 export function HypertextEditor({
