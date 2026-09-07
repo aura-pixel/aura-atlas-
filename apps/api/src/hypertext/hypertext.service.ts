@@ -172,6 +172,7 @@ return {
     data: {
       title?: string;
       description?: string | null;
+      coverImageUrl?: string | null;
       primaryColor?: string;
       secondaryColor?: string;
       fontFamily?: string;
@@ -203,6 +204,7 @@ return {
           title: data.title,
           description: data.description,
           primaryColor: data.primaryColor,
+          coverImageUrl: data.coverImageUrl,
           secondaryColor: data.secondaryColor,
           fontFamily: data.fontFamily,
           theme: data.theme,
