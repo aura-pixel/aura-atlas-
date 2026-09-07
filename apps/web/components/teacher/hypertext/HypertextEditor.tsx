@@ -15,7 +15,7 @@ import {
   Copy,
 ExternalLink,
 } from "lucide-react";
-import { post } from "@/lib/api";
+import { post, patch } from "@/lib/api";
 
 import { HypertextRenderer } from "@/components/teacher/hypertext/HypertextRenderer";
 
@@ -301,16 +301,14 @@ async function handleCopyLink() {
     setSecondaryColor(palette.secondary);
   }
 
-  function handleCoverApply() {
+  async function handleCoverApply() {
   if (!selectedCover) return;
+    let newCoverImageUrl: string;
 
   // Si es una portada ilustrada, usamos directamente su imagen.
   if (selectedCover.imageUrl) {
-    setCoverImageUrl(selectedCover.imageUrl);
-    setIsCoverModalOpen(false);
-    setSelectedCover(null);
-    return;
-  }
+  newCoverImageUrl = selectedCover.imageUrl;
+} 
 
   /*
    * Para las portadas minimalistas conservamos
@@ -399,12 +397,24 @@ async function handleCopyLink() {
   `;
 
   const dataUrl =
-    `data:image/svg+xml;charset=UTF-8,` +
-    encodeURIComponent(svg);
+  `data:image/svg+xml;charset=UTF-8,` +
+  encodeURIComponent(svg);
 
-  setCoverImageUrl(dataUrl);
+newCoverImageUrl = dataUrl;
+    try {
+  await patch(
+    `/hypertexts/${hypertext.id}/configuration`,
+    {
+      coverImageUrl: newCoverImageUrl,
+    },
+  );
+
+  setCoverImageUrl(newCoverImageUrl);
   setIsCoverModalOpen(false);
   setSelectedCover(null);
+} catch (error) {
+  console.error("Error al guardar la portada:", error);
+}
 }
 
   return (
