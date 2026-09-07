@@ -42,6 +42,7 @@ type Unit = {
   number: number;
   title: string;
   objective?: string | null;
+  imageUrl?: string | null;
   topics?: Topic[];
 };
 
@@ -107,6 +108,24 @@ export function HypertextRenderer({
   const [view, setView] = useState<ViewState>({
     type: "landing",
   });
+
+  const [units, setUnits] = useState(hypertext.units);
+
+  const handleUnitImageChange = (
+  unitId: string,
+  imageUrl: string | null,
+) => {
+  setUnits((currentUnits) =>
+    currentUnits.map((unit) =>
+      unit.id === unitId
+        ? {
+            ...unit,
+            imageUrl,
+          }
+        : unit,
+    ),
+  );
+};
 
   const university =
     hypertext.subject.career.faculty.university;
@@ -772,7 +791,7 @@ export function HypertextRenderer({
 >
   <UnitsView
   hypertextId={hypertext.id}
-  units={hypertext.units}
+  units={units}
   subjectName={subject.name}
   primaryColor={
     hypertext.primaryColor
