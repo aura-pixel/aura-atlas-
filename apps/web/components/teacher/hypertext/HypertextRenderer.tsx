@@ -771,17 +771,18 @@ export function HypertextRenderer({
   className="scroll-mt-20"
 >
   <UnitsView
-    hypertextId={hypertext.id}
-    units={hypertext.units}
-    subjectName={subject.name}
-    primaryColor={
-      hypertext.primaryColor
-    }
-    secondaryColor={
-      hypertext.secondaryColor
-    }
-    onUnitSelect={openUnit}
-  />
+  hypertextId={hypertext.id}
+  units={hypertext.units}
+  subjectName={subject.name}
+  primaryColor={
+    hypertext.primaryColor
+  }
+  secondaryColor={
+    hypertext.secondaryColor
+  }
+  mode={mode}
+  onUnitSelect={openUnit}
+/>
 </section>
 
           {/* =====================================================
