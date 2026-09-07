@@ -966,7 +966,7 @@ async function handleCopyLink() {
 {isCoverModalOpen && (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/30 px-4 backdrop-blur-sm">
 
-    <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+    <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl">
 
       {/* HEADER */}
       <div className="flex items-start justify-between border-b border-[#E5E7EB] px-6 py-5">
