@@ -38,6 +38,10 @@ type UnitsViewProps = {
   primaryColor?: string;
   secondaryColor?: string;
   mode?: "editor" | "public";
+  onUnitImageChange?: (
+    unitId: string,
+    imageUrl: string | null,
+  ) => void;
   onUnitSelect?: (unit: Unit) => void;
 };
 
@@ -59,6 +63,7 @@ export function UnitsView({
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
   mode = "public",
+  onUnitImageChange,
   onUnitSelect,
 }: UnitsViewProps) {
   const [unitImages, setUnitImages] = useState<
@@ -143,16 +148,21 @@ export function UnitsView({
      * necesitaremos subir el archivo a R2.
      */
     if (imageUrl?.startsWith("blob:")) {
-      setUnitImages((current) => ({
-        ...current,
-        [selectedUnitId]: imageUrl,
-      }));
+  setUnitImages((current) => ({
+    ...current,
+    [selectedUnitId]: imageUrl,
+  }));
 
-      setImagePickerOpen(false);
-      setSelectedUnitId(null);
+  onUnitImageChange?.(
+    selectedUnitId,
+    imageUrl,
+  );
 
-      return;
-    }
+  setImagePickerOpen(false);
+  setSelectedUnitId(null);
+
+  return;
+}
 
     try {
       setIsSavingImage(true);
