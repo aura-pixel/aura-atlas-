@@ -32,6 +32,45 @@ type Palette = {
   secondary: string;
 };
 
+const PALETTES: Palette[] = [
+  {
+    id: "lavender",
+    name: "Lavanda académica",
+    primary: "#5B4B8A",
+    secondary: "#E9E4F5",
+  },
+  {
+    id: "sage",
+    name: "Salvia",
+    primary: "#4F6D5A",
+    secondary: "#E2ECE9",
+  },
+  {
+    id: "breeze",
+    name: "Brisa",
+    primary: "#3F7180",
+    secondary: "#DCEFF2",
+  },
+  {
+    id: "rose",
+    name: "Rosa editorial",
+    primary: "#8A3F5D",
+    secondary: "#F7E0E8",
+  },
+  {
+    id: "peach",
+    name: "Durazno",
+    primary: "#9A5B32",
+    secondary: "#F8E4D7",
+  },
+  {
+    id: "mist",
+    name: "Azul niebla",
+    primary: "#4E5A78",
+    secondary: "#DFE7FD",
+  },
+];
+
 const FONT_OPTIONS = [
   {
     id: "Alegreya",
