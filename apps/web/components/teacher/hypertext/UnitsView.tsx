@@ -306,8 +306,7 @@ export function UnitsView({
                           secondaryColor
                         }
                         onClick={mode === "editor" ? () => openImagePicker(unit.id) : undefined}
-                          )
-                        }
+                        
                       />
                     </div>
 
