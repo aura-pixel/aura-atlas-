@@ -211,17 +211,41 @@ function getVideoEmbedUrl(url: string) {
       parsedUrl.hostname === "www.youtube.com" ||
       parsedUrl.hostname === "youtube.com"
     ) {
-      const videoId =
-        parsedUrl.searchParams.get("v");
+      // youtube.com/watch?v=ID
+      const watchId = parsedUrl.searchParams.get("v");
 
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
+      if (watchId) {
+        return `https://www.youtube.com/embed/${watchId}`;
+      }
+
+      // youtube.com/embed/ID
+      if (parsedUrl.pathname.startsWith("/embed/")) {
+        const videoId = parsedUrl.pathname
+          .split("/embed/")[1]
+          ?.split("/")[0];
+
+        if (videoId) {
+          return `https://www.youtube.com/embed/${videoId}`;
+        }
+      }
+
+      // youtube.com/shorts/ID
+      if (parsedUrl.pathname.startsWith("/shorts/")) {
+        const videoId = parsedUrl.pathname
+          .split("/shorts/")[1]
+          ?.split("/")[0];
+
+        if (videoId) {
+          return `https://www.youtube.com/embed/${videoId}`;
+        }
       }
     }
 
+    // youtu.be/ID
     if (parsedUrl.hostname === "youtu.be") {
-      const videoId =
-        parsedUrl.pathname.slice(1);
+      const videoId = parsedUrl.pathname
+        .slice(1)
+        .split("/")[0];
 
       if (videoId) {
         return `https://www.youtube.com/embed/${videoId}`;
@@ -233,8 +257,10 @@ function getVideoEmbedUrl(url: string) {
       parsedUrl.hostname === "vimeo.com" ||
       parsedUrl.hostname === "www.vimeo.com"
     ) {
-      const videoId =
-        parsedUrl.pathname.split("/").filter(Boolean).pop();
+      const videoId = parsedUrl.pathname
+        .split("/")
+        .filter(Boolean)
+        .pop();
 
       if (videoId) {
         return `https://player.vimeo.com/video/${videoId}`;
