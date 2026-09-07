@@ -296,10 +296,25 @@ async function handleCopyLink() {
   }
 }
 
-  function handlePaletteChange(palette: Palette) {
+  async function handlePaletteChange(palette: Palette) {
+  try {
+    await patch(
+      `/hypertexts/${hypertext.id}/configuration`,
+      {
+        primaryColor: palette.primary,
+        secondaryColor: palette.secondary,
+      },
+    );
+
     setPrimaryColor(palette.primary);
     setSecondaryColor(palette.secondary);
+  } catch (error) {
+    console.error(
+      "Error al guardar la paleta:",
+      error,
+    );
   }
+}
 
   async function handleCoverApply() {
   if (!selectedCover) return;
@@ -733,9 +748,23 @@ newCoverImageUrl = dataUrl;
                     <button
                       key={font.id}
                       type="button"
-                      onClick={() =>
-                        setFontFamily(font.id)
-                      }
+                      onClick={async () => {
+  try {
+    await patch(
+      `/hypertexts/${hypertext.id}/configuration`,
+      {
+        fontFamily: font.id,
+      },
+    );
+
+    setFontFamily(font.id);
+  } catch (error) {
+    console.error(
+      "Error al guardar la tipografía:",
+      error,
+    );
+  }
+}}
                       className={`flex w-full items-center justify-between rounded-xl border px-3.5 py-3 text-left transition ${
                         isSelected
                           ? "border-[#7D5DFF] bg-[#F8F7FF]"
@@ -793,7 +822,23 @@ newCoverImageUrl = dataUrl;
 
                 <button
                   type="button"
-                  onClick={() => setTheme("LIGHT")}
+                 onClick={async () => {
+  try {
+    await patch(
+      `/hypertexts/${hypertext.id}/configuration`,
+      {
+        theme: "LIGHT",
+      },
+    );
+
+    setTheme("LIGHT");
+  } catch (error) {
+    console.error(
+      "Error al guardar el tema:",
+      error,
+    );
+  }
+}}
                   className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-medium transition ${
                     theme === "LIGHT"
                       ? "border-[#7D5DFF] bg-[#F8F7FF] text-[#7D5DFF]"
@@ -807,7 +852,23 @@ newCoverImageUrl = dataUrl;
 
                 <button
                   type="button"
-                  onClick={() => setTheme("DARK")}
+                  onClick={async () => {
+  try {
+    await patch(
+      `/hypertexts/${hypertext.id}/configuration`,
+      {
+        theme: "DARK",
+      },
+    );
+
+    setTheme("DARK");
+  } catch (error) {
+    console.error(
+      "Error al guardar el tema:",
+      error,
+    );
+  }
+}}
                   className={`flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-xs font-medium transition ${
                     theme === "DARK"
                       ? "border-[#7D5DFF] bg-[#F8F7FF] text-[#7D5DFF]"
