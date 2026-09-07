@@ -466,6 +466,7 @@ export function HypertextRenderer({
             ),
           }}
           subjectName={subject.name}
+          mode={mode}
           onBack={() =>
             goToLandingSection("unidades")
           }
