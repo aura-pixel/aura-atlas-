@@ -441,13 +441,14 @@ export function UnitView({
                     onTopicSelect?.(topic)
                   }
                   className={`group relative mb-5 block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DCD6FF] hover:shadow-xl ${cardSize}`}
-                  style={{
+                style={{
   backgroundColor:
     index % 3 === 0
       ? `${secondaryColor}55`
       : index % 3 === 1
         ? `${primaryColor}10`
-        : "#FFFFFF",
+        : themeColors.surface,
+  borderColor: themeColors.border,
 }}
                 
                   onMouseEnter={(event) => {
