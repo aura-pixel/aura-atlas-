@@ -38,6 +38,7 @@ type UnitViewProps = {
   primaryColor?: string;
   secondaryColor?: string;
   theme?: "LIGHT" | "DARK";
+  fontFamily = "Montserrat",
   mode?: "editor" | "public";
   onBack?: () => void;
   onTopicSelect?: (topic: Topic) => void;
@@ -89,9 +90,10 @@ export function UnitView({
     <section
       className="relative overflow-hidden"
       style={{
-        backgroundColor: themeColors.background,
-        color: themeColors.foreground,
-      }}
+  backgroundColor: themeColors.background,
+  color: themeColors.foreground,
+  fontFamily,
+}}
     >
       {/* =====================================================
           HERO DE LA UNIDAD
