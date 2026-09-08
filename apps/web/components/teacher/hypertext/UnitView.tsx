@@ -50,6 +50,7 @@ export function UnitView({
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
   theme = "LIGHT",
+  fontFamily,
   mode = "public",
   onBack,
   onTopicSelect,
