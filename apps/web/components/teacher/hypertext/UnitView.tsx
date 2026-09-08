@@ -419,12 +419,19 @@ export function UnitView({
         </div>
 
         {visibleTopics.length > 0 ? (
-          <div className="mt-14 grid gap-5 md:grid-cols-2">
+          <div className="mt-14 columns-1 gap-5 md:columns-2">
             {visibleTopics.map((topic, index) => {
               const topicMaterialCount =
                 topic.materials?.length ?? 0;
 
-              const isFirst = index === 0;
+              const cardSize =
+  index % 4 === 0
+    ? "min-h-[320px]"
+    : index % 4 === 1
+      ? "min-h-[260px]"
+      : index % 4 === 2
+        ? "min-h-[290px]"
+        : "min-h-[240px]";
 
               return (
                 <button
@@ -433,7 +440,7 @@ export function UnitView({
                   onClick={() =>
                     onTopicSelect?.(topic)
                   }
-                  className="group relative overflow-hidden rounded-[2rem] border p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  className={`group relative mb-5 block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DCD6FF] hover:shadow-xl ${cardSize}`}
                   style={{
                     backgroundColor: themeColors.surface,
                     borderColor: themeColors.border,
