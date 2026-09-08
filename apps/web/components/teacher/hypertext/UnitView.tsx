@@ -465,10 +465,11 @@ export function UnitView({
                   <div
                     className="absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-10 transition-transform duration-500 group-hover:scale-125"
                     style={{
-                      backgroundColor: isFirst
-                        ? primaryColor
-                        : secondaryColor,
-                    }}
+  backgroundColor:
+    index === 0
+      ? primaryColor
+      : secondaryColor,
+}}
                   />
 
                   <div className="relative">
