@@ -9,7 +9,6 @@ import {
   ImageIcon,
   Moon,
   Pencil,
-  Share2,
   Sun,
   X,
   Copy,
@@ -217,9 +216,7 @@ const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
 const [selectedCover, setSelectedCover] =
   useState<CoverOption | null>(null);
 
-  const [activeSection, setActiveSection] = useState<
-    "edit" | "share" | "publish"
-  >("edit");
+  const [activeSection, setActiveSection] = useState<"edit" | "publish">("edit");
 
   const selectedPalette = useMemo(() => {
     return (
@@ -469,30 +466,6 @@ newCoverImageUrl = dataUrl;
               }`}
             >
               Editar
-            </span>
-          </button>
-
-
-          {/* COMPARTIR */}
-          <button
-            type="button"
-            onClick={() => setActiveSection("share")}
-            className={`group flex w-full flex-col items-center gap-1.5 rounded-xl px-2 py-3 transition ${
-              activeSection === "share"
-                ? "bg-[#EEF2F7] text-[#7D5DFF]"
-                : "text-[#6B7280] hover:bg-[#F7F8FA] hover:text-[#7D5DFF]"
-            }`}
-          >
-            <Share2 className="h-5 w-5" />
-
-            <span
-              className={`text-[11px] leading-tight ${
-                activeSection === "share"
-                  ? "font-semibold"
-                  : "font-medium"
-              }`}
-            >
-              Compartir
             </span>
           </button>
 
@@ -886,41 +859,6 @@ newCoverImageUrl = dataUrl;
 
           </div>
         )}
-
-
-
-        {/* =======================================================
-            PANEL COMPARTIR
-        ======================================================= */}
-        {activeSection === "share" && (
-          <div className="px-5 py-6">
-
-            <h2 className="text-sm font-semibold text-[#1E2430]">
-              Compartir
-            </h2>
-
-            <p className="mt-1 text-xs leading-5 text-gray-500">
-              Comparte tu hipertexto cuando esté publicado.
-            </p>
-
-
-            <div className="mt-6 rounded-xl border border-[#E5E7EB] bg-[#F8F9FB] p-4">
-
-              <p className="text-xs font-medium text-[#1E2430]">
-                Estado
-              </p>
-
-              <p className="mt-1 text-xs text-gray-500">
-                {isPublished
-  ? "Tu hipertexto está publicado."
-  : "Tu hipertexto todavía no está publicado."}
-              </p>
-
-            </div>
-
-          </div>
-        )}
-
 
         {/* =======================================================
             PANEL PUBLICAR
