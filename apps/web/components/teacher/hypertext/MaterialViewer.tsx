@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
   Presentation,
 } from "lucide-react";
+
 import { API_URL } from "@/lib/config";
 
 type Material = {
@@ -27,9 +28,11 @@ type MaterialViewerProps = {
   /* =========================================================
      CONFIGURACIÓN VISUAL
   ========================================================= */
+
   primaryColor?: string;
   secondaryColor?: string;
   theme?: "LIGHT" | "DARK";
+  fontFamily?: string;
 };
 
 export function MaterialViewer({
@@ -38,10 +41,9 @@ export function MaterialViewer({
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
   theme = "LIGHT",
+  fontFamily = "Montserrat",
 }: MaterialViewerProps) {
-  console.log("🔥 MATERIAL VIEWER:", material);
   const materialType = material.type?.toUpperCase();
-
   const hasUrl = Boolean(material.url);
 
   const isDark = theme === "DARK";
@@ -49,8 +51,9 @@ export function MaterialViewer({
   /* =========================================================
      COLORES
   ========================================================= */
+
   const colors = {
-    pageBackground: isDark ? "#15171C" : secondaryColor,
+    pageBackground: isDark ? "#15171C" : "#F7F8FA",
     surface: isDark ? "#1D2027" : "#FFFFFF",
     softSurface: isDark ? "#20242C" : "#FAFAFB",
     foreground: isDark ? "#F4F6F9" : "#1E2430",
@@ -60,7 +63,7 @@ export function MaterialViewer({
     softBorder: isDark ? "#383E4A" : "#D8DCE3",
     iconBackground: isDark
       ? `${primaryColor}20`
-      : "#EEF2F7",
+      : `${secondaryColor}40`,
     iconSurface: isDark
       ? "#252933"
       : "#FFFFFF",
@@ -95,16 +98,16 @@ export function MaterialViewer({
     <section
       className="min-h-screen"
       style={{
+        fontFamily,
         backgroundColor: colors.pageBackground,
         color: colors.foreground,
       }}
     >
-
       {/* =========================================================
           ENCABEZADO
       ========================================================= */}
-      <div className="mx-auto max-w-6xl px-6 pb-8 pt-10">
 
+      <div className="mx-auto max-w-6xl px-6 pb-8 pt-10">
         {onBack && (
           <button
             type="button"
@@ -114,23 +117,26 @@ export function MaterialViewer({
               color: colors.muted,
             }}
             onMouseEnter={(event) => {
-              event.currentTarget.style.color = primaryColor;
+              event.currentTarget.style.color =
+                primaryColor;
             }}
             onMouseLeave={(event) => {
-              event.currentTarget.style.color = colors.muted;
+              event.currentTarget.style.color =
+                colors.muted;
             }}
           >
             <ArrowLeft className="h-4 w-4" />
+
             Volver al tema
           </button>
         )}
 
         <div className="flex items-start gap-4">
-
           <div
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm"
             style={{
               backgroundColor: colors.iconSurface,
+              border: `1px solid ${colors.border}`,
             }}
           >
             <MaterialIcon
@@ -142,7 +148,6 @@ export function MaterialViewer({
           </div>
 
           <div className="min-w-0">
-
             <p
               className="text-xs font-medium uppercase tracking-wide"
               style={{
@@ -160,17 +165,14 @@ export function MaterialViewer({
             >
               {material.name}
             </h1>
-
           </div>
-
         </div>
-
       </div>
-
 
       {/* =========================================================
           CONTENIDO
       ========================================================= */}
+
       <div
         className="border-t"
         style={{
@@ -178,13 +180,9 @@ export function MaterialViewer({
           borderColor: colors.border,
         }}
       >
-
         <div className="mx-auto max-w-6xl px-6 py-10">
-
           {!hasUrl ? (
-            <EmptyMaterial
-              colors={colors}
-            />
+            <EmptyMaterial colors={colors} />
           ) : (
             <MaterialContent
               material={material}
@@ -193,11 +191,8 @@ export function MaterialViewer({
               primaryColor={primaryColor}
             />
           )}
-
         </div>
-
       </div>
-
     </section>
   );
 }
@@ -207,19 +202,25 @@ function getVideoEmbedUrl(url: string) {
     const parsedUrl = new URL(url);
 
     // YouTube
+
     if (
       parsedUrl.hostname === "www.youtube.com" ||
       parsedUrl.hostname === "youtube.com"
     ) {
       // youtube.com/watch?v=ID
-      const watchId = parsedUrl.searchParams.get("v");
+
+      const watchId =
+        parsedUrl.searchParams.get("v");
 
       if (watchId) {
         return `https://www.youtube.com/embed/${watchId}`;
       }
 
       // youtube.com/embed/ID
-      if (parsedUrl.pathname.startsWith("/embed/")) {
+
+      if (
+        parsedUrl.pathname.startsWith("/embed/")
+      ) {
         const videoId = parsedUrl.pathname
           .split("/embed/")[1]
           ?.split("/")[0];
@@ -230,7 +231,10 @@ function getVideoEmbedUrl(url: string) {
       }
 
       // youtube.com/shorts/ID
-      if (parsedUrl.pathname.startsWith("/shorts/")) {
+
+      if (
+        parsedUrl.pathname.startsWith("/shorts/")
+      ) {
         const videoId = parsedUrl.pathname
           .split("/shorts/")[1]
           ?.split("/")[0];
@@ -242,6 +246,7 @@ function getVideoEmbedUrl(url: string) {
     }
 
     // youtu.be/ID
+
     if (parsedUrl.hostname === "youtu.be") {
       const videoId = parsedUrl.pathname
         .slice(1)
@@ -253,6 +258,7 @@ function getVideoEmbedUrl(url: string) {
     }
 
     // Vimeo
+
     if (
       parsedUrl.hostname === "vimeo.com" ||
       parsedUrl.hostname === "www.vimeo.com"
@@ -299,58 +305,53 @@ function MaterialContent({
   primaryColor: string;
 }) {
   const url = material.url
-  ? material.url.startsWith("http")
-    ? material.url
-    : `${API_URL}/materials/file/${material.id}`
-  : "";
-
-console.log("MATERIAL URL:", material.url);
-console.log("FINAL URL:", url);
-console.log("🔥 MATERIAL CONTENT:", material);
+    ? material.url.startsWith("http")
+      ? material.url
+      : `${API_URL}/materials/file/${material.id}`
+    : "";
 
   switch (materialType) {
-
     case "VIDEO": {
-  const embedUrl = getVideoEmbedUrl(url);
+      const embedUrl = getVideoEmbedUrl(url);
 
-  if (embedUrl) {
-    return (
-      <div
-        className="overflow-hidden rounded-2xl border bg-black"
-        style={{
-          borderColor: colors.border,
-        }}
-      >
-        <div className="aspect-video w-full">
-          <iframe
-            src={embedUrl}
-            title={material.name}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+      if (embedUrl) {
+        return (
+          <div
+            className="overflow-hidden rounded-2xl border bg-black"
+            style={{
+              borderColor: colors.border,
+            }}
+          >
+            <div className="aspect-video w-full">
+              <iframe
+                src={embedUrl}
+                title={material.name}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div
+          className="overflow-hidden rounded-2xl border bg-black"
+          style={{
+            borderColor: colors.border,
+          }}
+        >
+          <video
+            src={url}
+            controls
+            className="mx-auto max-h-[75vh] w-full"
+          >
+            Tu navegador no puede reproducir este video.
+          </video>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border bg-black"
-      style={{
-        borderColor: colors.border,
-      }}
-    >
-      <video
-        src={url}
-        controls
-        className="mx-auto max-h-[75vh] w-full"
-      >
-        Tu navegador no puede reproducir este video.
-      </video>
-    </div>
-  );
-}
+      );
+    }
 
     case "AUDIO":
       return (
@@ -371,7 +372,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
         </div>
       );
 
-
     case "IMAGE":
       return (
         <div
@@ -388,7 +388,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
           />
         </div>
       );
-
 
     case "PDF":
       return (
@@ -407,7 +406,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
         </div>
       );
 
-
     case "LINK":
     case "ARTICLE":
       return (
@@ -418,7 +416,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
           primaryColor={primaryColor}
         />
       );
-
 
     case "PRESENTATION":
       return (
@@ -431,7 +428,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
         />
       );
 
-
     case "DOCUMENT":
       return (
         <ExternalMaterial
@@ -442,7 +438,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
           primaryColor={primaryColor}
         />
       );
-
 
     default:
       return (
@@ -456,7 +451,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
       );
   }
 }
-
 
 /* =============================================================
    MATERIAL EXTERNO
@@ -493,11 +487,11 @@ function ExternalMaterial({
         borderColor: colors.border,
       }}
     >
-
       <div
         className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm"
         style={{
           backgroundColor: colors.iconSurface,
+          border: `1px solid ${colors.border}`,
         }}
       >
         <ExternalLink
@@ -508,7 +502,6 @@ function ExternalMaterial({
         />
       </div>
 
-
       <h2
         className="mt-5 text-lg font-semibold"
         style={{
@@ -518,7 +511,6 @@ function ExternalMaterial({
         {name}
       </h2>
 
-
       <p
         className="mt-2 max-w-md text-sm leading-6"
         style={{
@@ -527,7 +519,6 @@ function ExternalMaterial({
       >
         Este material se abrirá en su ubicación original.
       </p>
-
 
       <a
         href={url}
@@ -539,13 +530,12 @@ function ExternalMaterial({
         }}
       >
         {label}
+
         <ExternalLink className="h-4 w-4" />
       </a>
-
     </div>
   );
 }
-
 
 /* =============================================================
    SIN MATERIAL
@@ -571,7 +561,6 @@ function EmptyMaterial({
         backgroundColor: colors.softSurface,
       }}
     >
-
       <FileText
         className="h-8 w-8"
         style={{
@@ -596,7 +585,6 @@ function EmptyMaterial({
       >
         No se encontró una ubicación para mostrar este recurso.
       </p>
-
     </div>
   );
 }
