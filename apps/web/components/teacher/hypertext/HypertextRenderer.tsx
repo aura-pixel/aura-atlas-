@@ -438,6 +438,7 @@ export function HypertextRenderer({
             hypertext.secondaryColor
           }
           theme={hypertext.theme}
+          fontFamily={hypertext.fontFamily}
         />
       )}
 
