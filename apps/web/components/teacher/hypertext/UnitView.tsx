@@ -449,10 +449,7 @@ export function UnitView({
         ? `${primaryColor}10`
         : "#FFFFFF",
 }}
-                  style={{
-                    backgroundColor: themeColors.surface,
-                    borderColor: themeColors.border,
-                  }}
+                
                   onMouseEnter={(event) => {
                     event.currentTarget.style.borderColor =
                       `${primaryColor}55`;
