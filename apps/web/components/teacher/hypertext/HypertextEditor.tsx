@@ -68,6 +68,54 @@ const PALETTES: Palette[] = [
     primary: "#4E5A78",
     secondary: "#DFE7FD",
   },
+  {
+    id: "sand",
+    name: "Arena editorial",
+    primary: "#806A4A",
+    secondary: "#F1E9DA",
+  },
+  {
+    id: "mauve",
+    name: "Malva",
+    primary: "#73566F",
+    secondary: "#EEE3EC",
+  },
+  {
+    id: "eucalyptus",
+    name: "Eucalipto",
+    primary: "#3F6658",
+    secondary: "#DDEBE4",
+  },
+  {
+    id: "ink-blue",
+    name: "Azul tinta",
+    primary: "#354A67",
+    secondary: "#DDE6F2",
+  },
+  {
+    id: "terracotta",
+    name: "Terracota",
+    primary: "#8A5140",
+    secondary: "#F1DED7",
+  },
+  {
+    id: "midnight-indigo",
+    name: "Índigo nocturno",
+    primary: "#3F4775",
+    secondary: "#E1E4F4",
+  },
+  {
+    id: "academic-ivory",
+    name: "Marfil académico",
+    primary: "#665C4A",
+    secondary: "#F4EFE3",
+  },
+  {
+    id: "dusty-rose",
+    name: "Rosa empolvado",
+    primary: "#865C69",
+    secondary: "#F0E3E7",
+  },
 ];
 
 const FONT_OPTIONS = [
@@ -104,6 +152,41 @@ const FONT_OPTIONS = [
   {
     id: "TeX Gyre Termes",
     name: "TeX Gyre Termes",
+    category: "Serif",
+  },
+  {
+    id: "Libre Baskerville",
+    name: "Libre Baskerville",
+    category: "Serif",
+  },
+  {
+    id: "Cormorant Garamond",
+    name: "Cormorant Garamond",
+    category: "Serif",
+  },
+  {
+    id: "EB Garamond",
+    name: "EB Garamond",
+    category: "Serif",
+  },
+  {
+    id: "Lora",
+    name: "Lora",
+    category: "Serif",
+  },
+  {
+    id: "Source Serif 4",
+    name: "Source Serif 4",
+    category: "Serif",
+  },
+  {
+    id: "Crimson Pro",
+    name: "Crimson Pro",
+    category: "Serif",
+  },
+  {
+    id: "Merriweather",
+    name: "Merriweather",
     category: "Serif",
   },
 ];
