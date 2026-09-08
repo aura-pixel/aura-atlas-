@@ -6,6 +6,7 @@ import {
   ChevronRight,
   CircleHelp,
   Home,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -108,6 +109,8 @@ export function HypertextRenderer({
   const [view, setView] = useState<ViewState>({
     type: "landing",
   });
+
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   const [units, setUnits] = useState(hypertext.units);
 
@@ -811,17 +814,18 @@ fontFamily={hypertext.fontFamily}
                   </p>
 
                   <button
-                    type="button"
-                    className="mt-6 rounded-xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
-                    style={{
-                      backgroundColor:
-                        themeColors.surface,
-                      color:
-                        hypertext.primaryColor,
-                    }}
-                  >
-                    Ver explicación
-                  </button>
+  type="button"
+  onClick={() => setShowHowItWorks(true)}
+  className="mt-6 rounded-xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+  style={{
+    backgroundColor:
+      themeColors.surface,
+    color:
+      hypertext.primaryColor,
+  }}
+>
+  Ver explicación
+</button>
                 </div>
               </div>
             </div>
@@ -854,6 +858,177 @@ fontFamily={hypertext.fontFamily}
           {/* =====================================================
               FOOTER
           ====================================================== */}
+          {showHowItWorks && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-5 py-8 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="how-it-works-title"
+    onMouseDown={(event) => {
+      if (event.target === event.currentTarget) {
+        setShowHowItWorks(false);
+      }
+    }}
+  >
+    <div
+      className="relative w-full max-w-2xl overflow-hidden rounded-[2rem] border p-7 shadow-2xl sm:p-10"
+      style={{
+        backgroundColor: themeColors.surface,
+        borderColor: `${hypertext.primaryColor}20`,
+      }}
+    >
+      {/* Decoración */}
+      <div
+        className="absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-10"
+        style={{
+          backgroundColor: hypertext.primaryColor,
+        }}
+      />
+
+      <div
+        className="absolute -bottom-16 -left-10 h-36 w-36 rounded-full opacity-10"
+        style={{
+          backgroundColor: hypertext.secondaryColor,
+        }}
+      />
+
+      {/* Cerrar */}
+      <button
+        type="button"
+        onClick={() => setShowHowItWorks(false)}
+        aria-label="Cerrar explicación"
+        className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full transition hover:scale-105"
+        style={{
+          backgroundColor: `${hypertext.primaryColor}10`,
+          color: themeColors.foreground,
+        }}
+      >
+        <X className="h-5 w-5" />
+      </button>
+
+      <div className="relative">
+        <div
+          className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl"
+          style={{
+            backgroundColor: `${hypertext.primaryColor}12`,
+            color: hypertext.primaryColor,
+          }}
+        >
+          <CircleHelp className="h-7 w-7" />
+        </div>
+
+        <p
+          className="text-xs font-bold uppercase tracking-[0.18em]"
+          style={{
+            color: hypertext.primaryColor,
+          }}
+        >
+          Cómo funciona
+        </p>
+
+        <h2
+          id="how-it-works-title"
+          className="mt-2 max-w-xl text-3xl font-bold tracking-[-0.03em] sm:text-4xl"
+          style={{
+            color: themeColors.foreground,
+          }}
+        >
+          Explora tu materia a tu ritmo.
+        </h2>
+
+        <p
+          className="mt-4 max-w-xl text-sm leading-7 sm:text-base"
+          style={{
+            color: themeColors.muted,
+          }}
+        >
+          Aquí encontrarás los contenidos organizados para que puedas
+          avanzar de forma sencilla.
+        </p>
+
+        <div className="mt-8 space-y-4">
+          {[
+            {
+              number: "01",
+              title: "Explora las unidades",
+              description:
+                "Comienza por la unidad que quieras consultar.",
+            },
+            {
+              number: "02",
+              title: "Revisa los temas",
+              description:
+                "Dentro de cada unidad encontrarás sus temas organizados.",
+            },
+            {
+              number: "03",
+              title: "Consulta los materiales",
+              description:
+                "Accede a los recursos disponibles para aprender y repasar.",
+            },
+          ].map((step) => (
+            <div
+              key={step.number}
+              className="flex gap-4 rounded-2xl p-4"
+              style={{
+                backgroundColor: `${hypertext.secondaryColor}10`,
+              }}
+            >
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xs font-bold"
+                style={{
+                  backgroundColor: `${hypertext.primaryColor}15`,
+                  color: hypertext.primaryColor,
+                }}
+              >
+                {step.number}
+              </div>
+
+              <div>
+                <h3
+                  className="text-sm font-bold sm:text-base"
+                  style={{
+                    color: themeColors.foreground,
+                  }}
+                >
+                  {step.title}
+                </h3>
+
+                <p
+                  className="mt-1 text-sm leading-6"
+                  style={{
+                    color: themeColors.muted,
+                  }}
+                >
+                  {step.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div
+          className="mt-8 rounded-2xl border px-5 py-4 text-sm"
+          style={{
+            borderColor: `${hypertext.primaryColor}18`,
+            backgroundColor: `${hypertext.primaryColor}08`,
+            color: themeColors.muted,
+          }}
+        >
+          <span
+            className="font-semibold"
+            style={{
+              color: themeColors.foreground,
+            }}
+          >
+            ¡Listo! ✦
+          </span>{" "}
+          Ahora puedes comenzar a explorar tus unidades.
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
           <footer
             className="border-t"
