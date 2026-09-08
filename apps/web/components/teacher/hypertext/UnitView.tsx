@@ -38,7 +38,7 @@ type UnitViewProps = {
   primaryColor?: string;
   secondaryColor?: string;
   theme?: "LIGHT" | "DARK";
-  fontFamily = "Montserrat",
+  fontFamily?: string;
   mode?: "editor" | "public";
   onBack?: () => void;
   onTopicSelect?: (topic: Topic) => void;
