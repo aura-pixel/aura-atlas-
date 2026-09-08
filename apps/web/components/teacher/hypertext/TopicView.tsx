@@ -41,9 +41,9 @@ type TopicViewProps = {
   primaryColor?: string;
   secondaryColor?: string;
   onBack?: () => void;
-  onMaterialSelect?: (
-    material: Material,
-  ) => void;
+  onMaterialSelect?: (material: Material) => void;
+  theme?: "LIGHT" | "DARK";
+  fontFamily?: string;
 };
 
 function getMaterialIcon(type: string) {
@@ -106,35 +106,59 @@ export function TopicView({
   subjectName,
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
+  theme = "LIGHT",
+  fontFamily = "Montserrat",
   onBack,
   onMaterialSelect,
 }: TopicViewProps) {
-  const materials = topic.materials ?? [];
-  const visualMaterials = materials.filter(
-  (material) => material.type?.toUpperCase() === "IMAGE",
-);
+  const isDark = theme === "DARK";
 
-const regularMaterials = materials.filter(
-  (material) => material.type?.toUpperCase() !== "IMAGE",
-);
+  const themeColors = {
+    background: isDark ? "#15171C" : "#F7F8FA",
+    foreground: isDark ? "#F4F6F9" : "#1E2430",
+    muted: isDark ? "#A7AFBC" : "#687584",
+    surface: isDark ? "#1D2027" : "#FFFFFF",
+    softSurface: isDark ? "#20242C" : "#F8F9FB",
+    border: isDark ? "#303540" : "#E5E7EB",
+    subtleText: isDark ? "#8F98A8" : "#9CA3AF",
+  };
+
+  const materials = topic.materials ?? [];
+
+  const visualMaterials = materials.filter(
+    (material) => material.type?.toUpperCase() === "IMAGE",
+  );
+
+  const regularMaterials = materials.filter(
+    (material) => material.type?.toUpperCase() !== "IMAGE",
+  );
 
   return (
-    <section className="relative overflow-hidden bg-white">
+    <section
+      className="relative overflow-hidden"
+      style={{
+        fontFamily,
+        backgroundColor: themeColors.background,
+        color: themeColors.foreground,
+      }}
+    >
       {/* =====================================================
           HERO DEL TEMA
       ====================================================== */}
 
       <div
-        className="relative overflow-hidden border-b border-[#E5E7EB]"
+        className="relative overflow-hidden border-b"
         style={{
           background: `linear-gradient(
             135deg,
             ${secondaryColor}22,
             ${primaryColor}0A
           )`,
+          borderColor: themeColors.border,
         }}
       >
         {/* Decoraciones */}
+
         <div
           className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-20"
           style={{
@@ -151,10 +175,26 @@ const regularMaterials = materials.filter(
 
         <div className="relative mx-auto max-w-5xl px-6 pb-16 pt-10 md:pb-20 md:pt-12">
           {/* Volver */}
+
           <button
             type="button"
             onClick={onBack}
-            className="group inline-flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-[#6B7280] transition hover:bg-white/70 hover:text-[#1E2430]"
+            className="group inline-flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium transition"
+            style={{
+              color: themeColors.muted,
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.backgroundColor =
+                themeColors.softSurface;
+              event.currentTarget.style.color =
+                themeColors.foreground;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.backgroundColor =
+                "transparent";
+              event.currentTarget.style.color =
+                themeColors.muted;
+            }}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
 
@@ -164,6 +204,7 @@ const regularMaterials = materials.filter(
           </button>
 
           {/* Breadcrumb académico */}
+
           <div className="mt-10">
             {subjectName && (
               <p
@@ -176,7 +217,12 @@ const regularMaterials = materials.filter(
               </p>
             )}
 
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-xs text-[#9CA3AF]">
+            <div
+              className="mt-5 flex flex-wrap items-center gap-2 text-xs"
+              style={{
+                color: themeColors.subtleText,
+              }}
+            >
               <span>Unidad {unit.number}</span>
 
               <span>•</span>
@@ -191,18 +237,35 @@ const regularMaterials = materials.filter(
               </span>
             </div>
 
-            <h1 className="mt-5 max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-[#1E2430] md:text-5xl">
+            <h1
+              className="mt-5 max-w-4xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl"
+              style={{
+                color: themeColors.foreground,
+              }}
+            >
               {topic.title}
             </h1>
 
-            <p className="mt-6 max-w-2xl text-sm leading-7 text-[#6B7280]">
+            <p
+              className="mt-6 max-w-2xl text-sm leading-7"
+              style={{
+                color: themeColors.muted,
+              }}
+            >
               Explora los materiales disponibles para
               este tema y consulta cada recurso desde
               el hipertexto.
             </p>
 
             {/* Resumen */}
-            <div className="mt-8 inline-flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white/80 px-4 py-3">
+
+            <div
+              className="mt-8 inline-flex items-center gap-3 rounded-2xl border px-4 py-3"
+              style={{
+                backgroundColor: `${themeColors.surface}CC`,
+                borderColor: themeColors.border,
+              }}
+            >
               <div
                 className="flex h-9 w-9 items-center justify-center rounded-xl"
                 style={{
@@ -218,11 +281,21 @@ const regularMaterials = materials.filter(
               </div>
 
               <div>
-                <p className="text-sm font-semibold text-[#1E2430]">
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color: themeColors.foreground,
+                  }}
+                >
                   {materials.length}
                 </p>
 
-                <p className="text-[11px] text-[#9CA3AF]">
+                <p
+                  className="text-[11px]"
+                  style={{
+                    color: themeColors.subtleText,
+                  }}
+                >
                   {materials.length === 1
                     ? "material disponible"
                     : "materiales disponibles"}
@@ -249,24 +322,32 @@ const regularMaterials = materials.filter(
             Recursos del tema
           </span>
 
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#1E2430] md:text-4xl">
+          <h2
+            className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl"
+            style={{
+              color: themeColors.foreground,
+            }}
+          >
             Materiales disponibles
           </h2>
 
-          <p className="mt-4 text-sm leading-7 text-[#6B7280]">
+          <p
+            className="mt-4 text-sm leading-7"
+            style={{
+              color: themeColors.muted,
+            }}
+          >
             Consulta los recursos proporcionados por el
             docente para complementar este tema.
           </p>
         </div>
 
         {regularMaterials.length > 0 ? (
-  <div className="mt-12 space-y-4">
-    {regularMaterials.map((material, index) => {
-              const Icon =
-                getMaterialIcon(material.type);
+          <div className="mt-12 space-y-4">
+            {regularMaterials.map((material, index) => {
+              const Icon = getMaterialIcon(material.type);
 
-              const label =
-                getMaterialLabel(material.type);
+              const label = getMaterialLabel(material.type);
 
               return (
                 <button
@@ -275,9 +356,22 @@ const regularMaterials = materials.filter(
                   onClick={() =>
                     onMaterialSelect?.(material)
                   }
-                  className="group relative flex w-full items-center gap-5 overflow-hidden rounded-3xl border border-[#E5E7EB] bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#DCD6FF] hover:shadow-lg md:p-6"
+                  className="group relative flex w-full items-center gap-5 overflow-hidden rounded-3xl border p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg md:p-6"
+                  style={{
+                    backgroundColor: themeColors.surface,
+                    borderColor: themeColors.border,
+                  }}
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.borderColor =
+                      `${primaryColor}55`;
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.borderColor =
+                      themeColors.border;
+                  }}
                 >
                   {/* Número */}
+
                   <div
                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold"
                     style={{
@@ -285,13 +379,11 @@ const regularMaterials = materials.filter(
                       color: primaryColor,
                     }}
                   >
-                    {String(index + 1).padStart(
-                      2,
-                      "0",
-                    )}
+                    {String(index + 1).padStart(2, "0")}
                   </div>
 
                   {/* Icono */}
+
                   <div
                     className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl sm:flex"
                     style={{
@@ -307,6 +399,7 @@ const regularMaterials = materials.filter(
                   </div>
 
                   {/* Información */}
+
                   <div className="min-w-0 flex-1">
                     <p
                       className="text-[11px] font-semibold uppercase tracking-[0.16em]"
@@ -317,18 +410,32 @@ const regularMaterials = materials.filter(
                       {label}
                     </p>
 
-                    <h3 className="mt-1.5 truncate text-base font-semibold text-[#1E2430] md:text-lg">
+                    <h3
+                      className="mt-1.5 truncate text-base font-semibold md:text-lg"
+                      style={{
+                        color: themeColors.foreground,
+                      }}
+                    >
                       {material.name}
                     </h3>
 
-                    <p className="mt-1 text-xs text-[#9CA3AF]">
+                    <p
+                      className="mt-1 text-xs"
+                      style={{
+                        color: themeColors.subtleText,
+                      }}
+                    >
                       Recurso {index + 1}
                     </p>
                   </div>
 
                   {/* Acción */}
+
                   <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F8F9FB] transition-all duration-300 group-hover:bg-[#F3F0FF]"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300"
+                    style={{
+                      backgroundColor: themeColors.softSurface,
+                    }}
                   >
                     <ArrowRight
                       className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
@@ -342,16 +449,42 @@ const regularMaterials = materials.filter(
             })}
           </div>
         ) : (
-          <div className="mt-12 rounded-3xl border border-dashed border-[#D8DCE3] bg-[#FAFAFB] px-6 py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF2F7]">
-              <FileText className="h-6 w-6 text-[#9CA3AF]" />
+          <div
+            className="mt-12 rounded-3xl border border-dashed px-6 py-16 text-center"
+            style={{
+              borderColor: themeColors.border,
+              backgroundColor: themeColors.softSurface,
+            }}
+          >
+            <div
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl"
+              style={{
+                backgroundColor: `${primaryColor}12`,
+              }}
+            >
+              <FileText
+                className="h-6 w-6"
+                style={{
+                  color: themeColors.subtleText,
+                }}
+              />
             </div>
 
-            <h3 className="mt-4 text-base font-semibold text-[#1E2430]">
+            <h3
+              className="mt-4 text-base font-semibold"
+              style={{
+                color: themeColors.foreground,
+              }}
+            >
               No hay materiales disponibles
             </h3>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6B7280]">
+            <p
+              className="mx-auto mt-2 max-w-md text-sm leading-6"
+              style={{
+                color: themeColors.muted,
+              }}
+            >
               Este tema todavía no tiene materiales
               disponibles.
             </p>
@@ -359,16 +492,38 @@ const regularMaterials = materials.filter(
         )}
 
         <ImageMaterial
-  materials={visualMaterials}
-  primaryColor={primaryColor}
-/>
+          materials={visualMaterials}
+          primaryColor={primaryColor}
+        />
 
         {/* Regresar */}
+
         <div className="mt-14 flex justify-center">
           <button
             type="button"
             onClick={onBack}
-            className="group inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-5 py-3 text-sm font-medium text-[#6B7280] transition hover:border-[#D8DCE3] hover:bg-[#FAFAFB] hover:text-[#1E2430]"
+            className="group inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition"
+            style={{
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
+              color: themeColors.muted,
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.borderColor =
+                `${primaryColor}55`;
+              event.currentTarget.style.backgroundColor =
+                themeColors.softSurface;
+              event.currentTarget.style.color =
+                themeColors.foreground;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.borderColor =
+                themeColors.border;
+              event.currentTarget.style.backgroundColor =
+                themeColors.surface;
+              event.currentTarget.style.color =
+                themeColors.muted;
+            }}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
 
