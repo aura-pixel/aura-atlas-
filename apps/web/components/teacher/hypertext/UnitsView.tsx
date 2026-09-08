@@ -301,6 +301,12 @@ export function UnitsView({
               {visibleUnits.map((unit, index) => {
                 const isLeft = index % 2 === 0;
 
+            const imageUrl =
+  unitImages[unit.id] ??
+  (mode === "public"
+    ? getDefaultUnitImage(unit.id)
+    : null);
+
                 return (
                   <div
                     key={unit.id}
