@@ -56,6 +56,25 @@ const UNIT_IMAGE_LIBRARY = [
   "/hypertext/covers/8.png",
 ];
 
+function getDefaultUnitImage(unitId: string) {
+  if (UNIT_IMAGE_LIBRARY.length === 0) {
+    return null;
+  }
+
+  let hash = 0;
+
+  for (let i = 0; i < unitId.length; i++) {
+    hash =
+      (hash << 5) - hash + unitId.charCodeAt(i);
+    hash |= 0;
+  }
+
+  const index =
+    Math.abs(hash) % UNIT_IMAGE_LIBRARY.length;
+
+  return UNIT_IMAGE_LIBRARY[index];
+}
+
 export function UnitsView({
   hypertextId,
   units = [],
@@ -305,10 +324,7 @@ export function UnitsView({
                       }`}
                     >
                       <UnitImage
-                        imageUrl={
-                          unitImages[unit.id] ??
-                          null
-                        }
+                        imageUrl={imageUrl}
                         primaryColor={
                           primaryColor
                         }
@@ -467,10 +483,7 @@ export function UnitsView({
                     {/* Imagen móvil */}
                     <div className="flex justify-center md:hidden">
                       <UnitImage
-                        imageUrl={
-                          unitImages[unit.id] ??
-                          null
-                        }
+                        imageUrl={imageUrl}
                         primaryColor={
                           primaryColor
                         }
@@ -508,6 +521,7 @@ export function UnitsView({
           SELECTOR DE IMÁGENES
       ====================================================== */}
 
+      {mode === "editor" && (
       <ImagePickerModal
         isOpen={imagePickerOpen}
         onClose={closeImagePicker}
@@ -521,6 +535,7 @@ export function UnitsView({
         }
         description="Selecciona una imagen para acompañar esta unidad."
       />
+      )}
     </section>
   );
 }
