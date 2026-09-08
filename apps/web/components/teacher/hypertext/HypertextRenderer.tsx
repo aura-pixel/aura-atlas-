@@ -505,6 +505,7 @@ fontFamily={hypertext.fontFamily}
             hypertext.secondaryColor
           }
           theme={hypertext.theme}
+          fontFamily={hypertext.fontFamily}
         />
       )}
 
