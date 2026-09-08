@@ -227,42 +227,44 @@ export function UnitsView({
 
   return (
     <section className="relative overflow-hidden bg-white">
-      {/* Encabezado */}
-      <div
-        className="border-b border-[#E5E7EB]"
+      
+{/* Encabezado */}
+<div
+  className="border-b border-[#E5E7EB]"
+  style={{
+    background: `linear-gradient(135deg, ${secondaryColor}18, ${primaryColor}08)`,
+  }}
+>
+  <div className="mx-auto max-w-6xl px-6 pb-14 pt-20">
+    {subjectName && (
+      <p
+        className="text-sm font-medium"
         style={{
-          background: `linear-gradient(135deg, ${secondaryColor}18, ${primaryColor}08)`,
+          color: primaryColor,
         }}
       >
-        <div className="mx-auto max-w-6xl px-6 pb-14 pt-20">
-          {subjectName && (
-            <p
-              className="text-sm font-medium"
-              style={{
-                color: primaryColor,
-              }}
-            >
-              {subjectName}
-            </p>
-          )}
+        {subjectName}
+      </p>
+    )}
 
-          <p
-            className="mt-6 text-xs font-bold uppercase tracking-[0.22em]"
-            style={{
-              color: primaryColor,
-            }}
-          >
-            Recorrido
-          </p>
+    <p
+      className="mt-6 text-xs font-bold uppercase tracking-[0.22em]"
+      style={{
+        color: primaryColor,
+      }}
+    >
+      Recorrido
+    </p>
 
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#1E2430] md:text-4xl">
-            Explora las unidades
-          </h2>
+    <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#1E2430] md:text-4xl">
+      Explora las unidades
+    </h2>
 
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6B7280]">
-            Avanza por el contenido de la materia siguiendo
-            el recorrido de aprendizaje.
-          </p>
+    <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6B7280]">
+      Avanza por el contenido de la materia siguiendo
+      el recorrido de aprendizaje.
+    </p>
+        
         </div>
       </div>
 
