@@ -722,114 +722,199 @@ fontFamily={hypertext.fontFamily}
 </section>
 
           {/* =====================================================
-              CÓMO FUNCIONA
-          ====================================================== */}
+    CÓMO FUNCIONA
+====================================================== */}
 
-          <section
-            id="como-funciona"
-            className="scroll-mt-20"
-          >
-            <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
-              <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-                <div>
-                  <p
-                    className="text-sm font-bold uppercase tracking-[0.18em]"
-                    style={{
-                      color:
-                        hypertext.primaryColor,
-                    }}
-                  >
-                    Cómo funciona
-                  </p>
-
-                  <h2
-                    className="mt-3 text-3xl font-bold tracking-[-0.03em] sm:text-4xl"
-                    style={{
-                      color:
-                        themeColors.foreground,
-                    }}
-                  >
-                    Explora tu materia de una forma diferente.
-                  </h2>
-
-                  <p
-                    className="mt-6 max-w-xl text-base leading-8"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Este hipertexto organiza los
-                    contenidos de la materia en una
-                    experiencia visual, para que puedas
-                    recorrer las unidades, consultar
-                    los temas y acceder a sus
-                    materiales.
-                  </p>
-                </div>
-
-                <div
-                  className="rounded-[2rem] p-8"
-                  style={{
-                    backgroundColor:
-                      `${hypertext.secondaryColor}18`,
-                  }}
-                >
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl"
-                    style={{
-                      backgroundColor:
-                        themeColors.surface,
-                    }}
-                  >
-                    <CircleHelp
-                      className="h-6 w-6"
-                      style={{
-                        color:
-                          hypertext.primaryColor,
-                      }}
-                    />
-                  </div>
-
-                  <h3
-                    className="mt-6 text-xl font-bold"
-                    style={{
-                      color:
-                        themeColors.foreground,
-                    }}
-                  >
-                    Conoce cómo funciona
-                  </h3>
-
-                  <p
-                    className="mt-2 text-sm leading-7"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Aprende rápidamente cómo navegar
-                    por este hipertexto y aprovechar sus
-                    recursos.
-                  </p>
-
-                  <button
-  type="button"
-  onClick={() => setShowHowItWorks(true)}
-  className="mt-6 rounded-xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+<section
+  id="como-funciona"
+  className="relative scroll-mt-20 overflow-hidden"
   style={{
-    backgroundColor:
-      themeColors.surface,
-    color:
-      hypertext.primaryColor,
+    backgroundColor: `color-mix(in srgb, ${hypertext.primaryColor} 8%, white)`,
   }}
 >
-  Ver explicación
-</button>
-                </div>
-              </div>
-            </div>
-          </section>
+  {/* =====================================================
+      DECORACIÓN
+  ====================================================== */}
+
+  <div
+    className="pointer-events-none absolute -left-24 top-10 h-64 w-64 rounded-full opacity-20"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full opacity-15"
+    style={{
+      backgroundColor: hypertext.secondaryColor,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute bottom-[-100px] right-[18%] h-56 w-56 rotate-12 rounded-[40%]"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+      opacity: 0.06,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute bottom-16 left-[42%] h-4 w-4 rounded-full"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+      opacity: 0.35,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute right-[12%] top-[42%] h-3 w-3 rounded-full"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+      opacity: 0.25,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute left-[12%] bottom-[22%] text-3xl"
+    style={{
+      color: hypertext.primaryColor,
+      opacity: 0.18,
+    }}
+  >
+    ✦
+  </div>
+
+  <div
+    className="pointer-events-none absolute right-[6%] bottom-[18%] text-2xl"
+    style={{
+      color: hypertext.primaryColor,
+      opacity: 0.15,
+    }}
+  >
+    ✧
+  </div>
+
+  {/* =====================================================
+      CONTENIDO
+  ====================================================== */}
+
+  <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
+    <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+
+      {/* =================================================
+          TEXTO
+      ================================================== */}
+
+      <div>
+        <p
+          className="text-sm font-bold uppercase tracking-[0.18em]"
+          style={{
+            color: hypertext.primaryColor,
+          }}
+        >
+          Cómo funciona
+        </p>
+
+        <h2
+          className="mt-3 max-w-2xl text-3xl font-bold tracking-[-0.03em] sm:text-4xl"
+          style={{
+            color: themeColors.foreground,
+          }}
+        >
+          Explora tu materia de una forma diferente.
+        </h2>
+
+        <p
+          className="mt-6 max-w-xl text-base leading-8"
+          style={{
+            color: themeColors.muted,
+          }}
+        >
+          Este hipertexto organiza los contenidos de la materia
+          en una experiencia visual, para que puedas recorrer las
+          unidades, consultar los temas y acceder a sus materiales.
+        </p>
+      </div>
+
+      {/* =================================================
+          TARJETA
+      ================================================== */}
+
+      <div
+        className="relative overflow-hidden rounded-[2rem] border p-8 shadow-sm"
+        style={{
+          backgroundColor: themeColors.surface,
+          borderColor: `${hypertext.primaryColor}20`,
+        }}
+      >
+        {/* Forma orgánica interna */}
+
+        <div
+          className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full opacity-10"
+          style={{
+            backgroundColor: hypertext.primaryColor,
+          }}
+        />
+
+        <div
+          className="pointer-events-none absolute -bottom-20 -left-16 h-44 w-44 rounded-[45%] opacity-10"
+          style={{
+            backgroundColor: hypertext.secondaryColor,
+          }}
+        />
+
+        <div className="relative">
+
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-2xl"
+            style={{
+              backgroundColor: `${hypertext.primaryColor}12`,
+            }}
+          >
+            <CircleHelp
+              className="h-6 w-6"
+              style={{
+                color: hypertext.primaryColor,
+              }}
+            />
+          </div>
+
+          <h3
+            className="mt-6 text-xl font-bold"
+            style={{
+              color: themeColors.foreground,
+            }}
+          >
+            Conoce cómo funciona
+          </h3>
+
+          <p
+            className="mt-2 text-sm leading-7"
+            style={{
+              color: themeColors.muted,
+            }}
+          >
+            Aprende rápidamente cómo navegar por este hipertexto
+            y aprovechar sus recursos.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setShowHowItWorks(true)}
+            className="mt-6 rounded-xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
+            style={{
+              backgroundColor: hypertext.primaryColor,
+              color: "#FFFFFF",
+            }}
+          >
+            Ver explicación
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
           {/* =====================================================
               UNIDADES / RECORRIDO
