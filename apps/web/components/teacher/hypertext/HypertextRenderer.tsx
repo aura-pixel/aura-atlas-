@@ -519,162 +519,204 @@ fontFamily={hypertext.fontFamily}
               HERO
           ====================================================== */}
 
-          <section
-            id="inicio"
-            className="scroll-mt-20"
+        <section
+  id="inicio"
+  className="relative scroll-mt-20 overflow-hidden"
+>
+  {/* =====================================================
+      FIGURAS DECORATIVAS
+  ====================================================== */}
+
+  <div
+    className="pointer-events-none absolute -left-20 top-16 h-44 w-44 rounded-full opacity-20 blur-[1px]"
+    style={{
+      backgroundColor: hypertext.secondaryColor,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute right-[-70px] top-10 h-52 w-52 rounded-full opacity-15"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute left-[42%] top-20 h-5 w-5 rotate-45 rounded-[5px] opacity-30"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute right-[12%] bottom-24 h-7 w-7 rounded-full opacity-20"
+    style={{
+      backgroundColor: hypertext.secondaryColor,
+    }}
+  />
+
+  <div
+    className="pointer-events-none absolute left-[8%] bottom-20 h-3 w-3 rounded-full opacity-30"
+    style={{
+      backgroundColor: hypertext.primaryColor,
+    }}
+  />
+
+  <div className="pointer-events-none absolute right-[28%] top-32 text-3xl opacity-20">
+    ✦
+  </div>
+
+  <div className="pointer-events-none absolute left-[46%] bottom-20 text-2xl opacity-15">
+    ✧
+  </div>
+
+  {/* =====================================================
+      CONTENIDO DEL HERO
+  ====================================================== */}
+
+  <div className="relative mx-auto grid min-h-[620px] max-w-7xl items-center gap-10 px-6 py-20 lg:grid-cols-[1fr_0.9fr] lg:px-10 lg:py-24">
+    {/* =====================================================
+        INFORMACIÓN
+    ====================================================== */}
+
+    <div className="relative z-10 flex flex-col justify-center">
+      <div
+        className="flex flex-wrap items-center gap-2 text-sm"
+        style={{
+          color: themeColors.muted,
+        }}
+      >
+        <span>{university.name}</span>
+
+        <ChevronRight className="h-4 w-4 opacity-50" />
+
+        <span>{faculty.name}</span>
+
+        <ChevronRight className="h-4 w-4 opacity-50" />
+
+        <span>{career.name}</span>
+      </div>
+
+      <p
+        className="mt-8 text-sm font-bold uppercase tracking-[0.18em]"
+        style={{
+          color: hypertext.primaryColor,
+        }}
+      >
+        {subject.abbreviation ?? "Materia"}
+      </p>
+
+      <h1
+        className="mt-4 max-w-3xl text-5xl font-bold leading-[1.02] tracking-[-0.045em] sm:text-6xl lg:text-7xl"
+        style={{
+          color: themeColors.foreground,
+        }}
+      >
+        {subject.name}
+      </h1>
+
+      {hypertext.description && (
+        <p
+          className="mt-7 max-w-2xl text-base leading-8"
+          style={{
+            color: themeColors.muted,
+          }}
+        >
+          {hypertext.description}
+        </p>
+      )}
+
+      <p
+        className="mt-6 text-sm"
+        style={{
+          color: themeColors.muted,
+        }}
+      >
+        Elaborado por{" "}
+        <span
+          className="font-semibold"
+          style={{
+            color: themeColors.foreground,
+          }}
+        >
+          {hypertext.user.name}
+        </span>
+      </p>
+
+      <div className="mt-9">
+        <button
+          type="button"
+          onClick={() => scrollToSection("unidades")}
+          className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-white transition duration-300 hover:-translate-y-1"
+          style={{
+            backgroundColor: hypertext.primaryColor,
+            boxShadow: `0 12px 28px ${hypertext.primaryColor}25`,
+          }}
+        >
+          Comenzar
+
+          <ArrowDown className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+
+    {/* =====================================================
+        ILUSTRACIÓN
+    ====================================================== */}
+
+    <div className="relative flex min-h-[360px] items-center justify-center lg:min-h-[520px]">
+      {/* Formas decorativas alrededor de la ilustración */}
+
+      <div
+        className="pointer-events-none absolute right-[12%] top-[8%] h-16 w-16 rounded-[2rem] opacity-20"
+        style={{
+          backgroundColor: hypertext.secondaryColor,
+          transform: "rotate(18deg)",
+        }}
+      />
+
+      <div
+        className="pointer-events-none absolute bottom-[12%] left-[10%] h-20 w-20 rounded-full opacity-15"
+        style={{
+          backgroundColor: hypertext.primaryColor,
+        }}
+      />
+
+      <div
+        className="pointer-events-none absolute left-[16%] top-[22%] h-4 w-4 rounded-full opacity-30"
+        style={{
+          backgroundColor: hypertext.primaryColor,
+        }}
+      />
+
+      <div className="pointer-events-none absolute right-[16%] bottom-[22%] text-4xl opacity-20">
+        ✦
+      </div>
+
+      {hypertext.coverImageUrl ? (
+        <img
+          src={hypertext.coverImageUrl}
+          alt={`Portada de ${subject.name}`}
+          className="relative z-10 h-auto max-h-[500px] w-full max-w-[560px] object-contain drop-shadow-[0_24px_35px_rgba(0,0,0,0.12)] transition duration-500 hover:-translate-y-1"
+        />
+      ) : (
+        <div
+          className="relative z-10 flex h-[360px] w-full max-w-[500px] items-center justify-center"
+        >
+          <div
+            className="flex h-28 w-28 items-center justify-center rounded-[2rem]"
+            style={{
+              backgroundColor: `${hypertext.secondaryColor}55`,
+              color: hypertext.primaryColor,
+            }}
           >
-            <div
-              className="relative overflow-hidden"
-              style={{
-                background: `linear-gradient(
-                  135deg,
-                  ${hypertext.primaryColor}18,
-                  ${hypertext.secondaryColor}20
-                )`,
-              }}
-            >
-              <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-10 lg:py-28">
-                <div className="flex flex-col justify-center">
-                  <div
-                    className="flex flex-wrap items-center gap-2 text-sm"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    <span>
-                      {university.name}
-                    </span>
-
-                    <ChevronRight className="h-4 w-4" />
-
-                    <span>
-                      {faculty.name}
-                    </span>
-
-                    <ChevronRight className="h-4 w-4" />
-
-                    <span>
-                      {career.name}
-                    </span>
-                  </div>
-
-                  <p
-                    className="mt-8 text-sm font-bold uppercase tracking-[0.18em]"
-                    style={{
-                      color:
-                        hypertext.primaryColor,
-                    }}
-                  >
-                    {subject.abbreviation ??
-                      "Materia"}
-                  </p>
-
-                  <h1
-                    className="mt-3 text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl"
-                    style={{
-                      color:
-                        themeColors.foreground,
-                    }}
-                  >
-                    {hypertext.title}
-                  </h1>
-
-                  {hypertext.description && (
-                    <p
-                      className="mt-6 max-w-2xl text-base leading-8"
-                      style={{
-                        color:
-                          themeColors.muted,
-                      }}
-                    >
-                      {hypertext.description}
-                    </p>
-                  )}
-
-                  <p
-                    className="mt-6 text-sm"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Elaborado por:{" "}
-                    <span
-                      className="font-semibold"
-                      style={{
-                        color:
-                          themeColors.foreground,
-                      }}
-                    >
-                      {hypertext.user.name}
-                    </span>
-                  </p>
-
-                  <div className="mt-8">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        scrollToSection(
-                          "unidades",
-                        )
-                      }
-                      className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
-                      style={{
-                        backgroundColor:
-                          hypertext.primaryColor,
-                      }}
-                    >
-                      Comenzar
-
-                      <ArrowDown className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center">
-                  <div
-                    className="aspect-[4/3] w-full max-w-xl overflow-hidden rounded-[2rem] border shadow-sm"
-                    style={{
-                      backgroundColor:
-                        themeColors.surface,
-                      borderColor:
-                        `${hypertext.primaryColor}20`,
-                    }}
-                  >
-                    {hypertext.coverImageUrl ? (
-                      <img
-                        src={
-                          hypertext.coverImageUrl
-                        }
-                        alt={`Portada de ${hypertext.title}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="flex h-full min-h-[300px] items-center justify-center"
-                        style={{
-                          background: `linear-gradient(
-                            135deg,
-                            ${hypertext.primaryColor}20,
-                            ${hypertext.secondaryColor}30
-                          )`,
-                        }}
-                      >
-                        <BookOpen
-                          className="h-16 w-16"
-                          style={{
-                            color:
-                              hypertext.primaryColor,
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
+            <BookOpen className="h-14 w-14" />
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
 
           {/* =====================================================
               CÓMO FUNCIONA
