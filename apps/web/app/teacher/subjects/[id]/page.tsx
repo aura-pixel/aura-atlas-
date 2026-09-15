@@ -356,11 +356,10 @@ export default function SubjectPage() {
 
         {activeTab === "resumen" && (
           <SubjectOverview
-            subject={subject}
-            hypertextProgress={
-              hypertextProgress
-            }
-          />
+  subject={subject}
+  hypertextProgress={hypertextProgress}
+  onGoToContents={() => setActiveTab("contenidos")}
+/>
         )}
 
 
