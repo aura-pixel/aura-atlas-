@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   ArrowRight,
   BookOpen,
@@ -22,11 +21,13 @@ type HypertextProgress = {
 type SubjectOverviewProps = {
   subject: Subject;
   hypertextProgress: HypertextProgress | null;
+  onGoToContents: () => void;
 };
 
 export function SubjectOverview({
   subject,
   hypertextProgress,
+  onGoToContents,
 }: SubjectOverviewProps) {
   const hypertext =
     subject.hypertexts?.[0];
@@ -275,13 +276,14 @@ export function SubjectOverview({
 
           </div>
 
-          <Link
-            href="#"
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#4A1115] px-5 py-3 text-sm font-semibold text-[#FFFDF8] shadow-lg shadow-[#4A1115]/15 transition-all hover:-translate-y-0.5"
-          >
-            Ver contenidos
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <button
+  type="button"
+  onClick={onGoToContents}
+  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#4A1115] px-5 py-3 text-sm font-semibold text-[#FFFDF8] shadow-lg shadow-[#4A1115]/15 transition-all hover:-translate-y-0.5"
+>
+  Ver contenidos
+  <ArrowRight className="h-4 w-4" />
+</button>
 
         </div>
 
