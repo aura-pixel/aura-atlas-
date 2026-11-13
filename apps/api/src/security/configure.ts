@@ -5,13 +5,18 @@ import helmet from 'helmet';
 import type { Request, Response, NextFunction } from 'express';
 
 export function configureSecurity(app: NestExpressApplication) {
+  const frontendOrigin = new URL(
+    process.env.FRONTEND_URL || 'http://localhost:3001',
+  ).origin;
   if (process.env.NODE_ENV === 'production') {
     if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)
       throw new Error('JWT_SECRET debe tener al menos 32 caracteres.');
     if (!process.env.FRONTEND_URL?.startsWith('https://'))
       throw new Error('FRONTEND_URL debe usar HTTPS en producción.');
     if (!process.env.SMTP_URL || !process.env.MAIL_FROM)
-      throw new Error('Configura SMTP_URL y MAIL_FROM para verificar correos.');
+      new Logger('EmailVerification').warn(
+        'El envío de verificaciones está pendiente de configurar SMTP_URL y MAIL_FROM.',
+      );
   }
   app.disable('x-powered-by');
   app.use(
@@ -21,7 +26,7 @@ export function configureSecurity(app: NestExpressApplication) {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'none'"],
-          frameAncestors: [process.env.FRONTEND_URL || 'http://localhost:3001'],
+          frameAncestors: [frontendOrigin],
           sandbox: ['allow-same-origin'],
         },
       },
@@ -52,7 +57,7 @@ export function configureSecurity(app: NestExpressApplication) {
         req.headers.cookie?.includes('atlas_session='))
     ) {
       const origin = req.headers.origin;
-      if (origin !== (process.env.FRONTEND_URL || 'http://localhost:3001')) {
+      if (origin !== frontendOrigin) {
         res.status(403).json({ message: 'Origen no permitido.' });
         return;
       }
@@ -68,7 +73,7 @@ export function configureSecurity(app: NestExpressApplication) {
     }),
   );
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    origin: frontendOrigin,
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
