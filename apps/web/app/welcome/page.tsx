@@ -123,7 +123,7 @@ export default function WelcomePage() {
                 tiene un <em>nuevo hogar.</em>
               </h1>
               <p>
-                Qué bonito que estés aquí. Este es tu espacio para cultivar
+                Nos alegra que estés aquí. Este es tu espacio para cultivar
                 ideas, conectar lo que sabes y dar vida a nuevas formas de
                 aprender.
               </p>
