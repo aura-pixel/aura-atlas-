@@ -1,330 +1,219 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import {
+  ArrowLeft,
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
+  Check,
+  GraduationCap,
   Link2,
-  Sparkles,
+  Sprout,
 } from "lucide-react";
+import {
+  Butterfly,
+  LearningGarden,
+} from "@/components/landing/learning-garden";
+import styles from "./welcome.module.css";
 
-import { Button } from "@/components/ui/button";
+export const metadata: Metadata = {
+  title: "Tu nuevo espacio docente | Aura Atlas",
+};
+
+const firstSteps = [
+  {
+    number: "01",
+    icon: GraduationCap,
+    title: "Encuentra tu comunidad",
+    description: "Tu universidad y tu carrera son el punto de partida.",
+  },
+  {
+    number: "02",
+    icon: BookOpen,
+    title: "Dale lugar a tus ideas",
+    description: "Elige una materia o crea una que aún no exista.",
+  },
+  {
+    number: "03",
+    icon: Link2,
+    title: "Conecta tu conocimiento",
+    description: "Reúne temas y recursos con tu propia perspectiva.",
+  },
+];
 
 export default function WelcomePage() {
-  const router = useRouter();
-
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F7F1E7]">
-
-      {/* =====================================================
-          FONDO
-      ====================================================== */}
-
-      <div className="pointer-events-none absolute -left-40 top-1/3 h-[36rem] w-[36rem] rounded-full bg-[#E8AFC0]/20 blur-[110px]" />
-
-      <div className="pointer-events-none absolute -right-40 bottom-0 h-[32rem] w-[32rem] rounded-full bg-[#8B9AAA]/15 blur-[110px]" />
-
-
-      {/* =====================================================
-          CONTENIDO
-      ====================================================== */}
-
-      <div className="relative z-10 grid min-h-screen lg:grid-cols-[46%_54%]">
-
-
-        {/* =================================================
-            LADO VISUAL
-        ================================================== */}
-
-        <section className="relative flex min-h-[48vh] items-center justify-center overflow-hidden bg-[#4A1115] px-8 py-16 lg:min-h-screen">
-
-          {/* Formas de fondo */}
-
-          <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full border border-[#FFFDF8]/10" />
-
-          <div className="pointer-events-none absolute -left-20 -top-20 h-72 w-72 rounded-full border border-[#FFFDF8]/10" />
-
-          <div className="pointer-events-none absolute bottom-[-10rem] right-[-8rem] h-[30rem] w-[30rem] rounded-full border border-[#E8AFC0]/15" />
-
-          <div className="pointer-events-none absolute bottom-[-5rem] right-[-3rem] h-72 w-72 rounded-full bg-[#E8AFC0]/10 blur-3xl" />
-
-
-          {/* Líneas / conexiones */}
-
-          <div className="pointer-events-none absolute left-[12%] top-[28%] h-px w-40 rotate-[28deg] bg-[#FFFDF8]/15" />
-
-          <div className="pointer-events-none absolute right-[10%] top-[38%] h-px w-36 -rotate-[25deg] bg-[#E8AFC0]/25" />
-
-          <div className="pointer-events-none absolute bottom-[24%] left-[18%] h-px w-32 -rotate-[20deg] bg-[#FFFDF8]/10" />
-
-
-          {/* Nodos */}
-
-          <div className="absolute left-[18%] top-[24%] h-3 w-3 rounded-full border-2 border-[#E8AFC0]/50" />
-
-          <div className="absolute right-[17%] top-[30%] h-2.5 w-2.5 rounded-full bg-[#E8AFC0]/60" />
-
-          <div className="absolute bottom-[24%] right-[20%] h-3 w-3 rounded-full border-2 border-[#FFFDF8]/20" />
-
-          <div className="absolute bottom-[31%] left-[15%] h-2 w-2 rounded-full bg-[#FFFDF8]/30" />
-
-
-          {/* =================================================
-              COMPOSICIÓN CENTRAL
-          ================================================== */}
-
-          <div className="relative">
-
-            {/* Glow */}
-
-            <div className="absolute inset-0 scale-125 rounded-full bg-[#E8AFC0]/10 blur-3xl" />
-
-
-            {/* Anillo */}
-
-            <div className="absolute -inset-10 rounded-[5rem] border border-[#FFFDF8]/10 rotate-[-6deg]" />
-
-            <div className="absolute -inset-5 rounded-[4rem] border border-[#E8AFC0]/20 rotate-[5deg]" />
-
-
-            {/* Tarjeta */}
-
-            <div className="relative flex h-72 w-72 items-center justify-center rounded-[4rem] border border-[#FFFDF8]/15 bg-[#FFFDF8]/10 shadow-2xl backdrop-blur-md sm:h-80 sm:w-80">
-
-              <div className="absolute inset-5 rounded-[3rem] bg-[#FFFDF8]/5" />
-
-              <img
-                src="/aura-atlas.png"
-                alt="Aura Atlas"
-                className="relative h-56 w-56 object-contain drop-shadow-2xl sm:h-64 sm:w-64"
-              />
-
-            </div>
-
-
-            {/* Elemento flotante superior */}
-
-            <div className="absolute -right-10 -top-8 flex h-16 w-16 rotate-[8deg] items-center justify-center rounded-2xl border border-[#FFFDF8]/15 bg-[#FFFDF8]/10 text-[#FFFDF8] shadow-xl backdrop-blur-md">
-
-              <BookOpen className="h-6 w-6" />
-
-            </div>
-
-
-            {/* Elemento flotante inferior */}
-
-            <div className="absolute -bottom-7 -left-10 flex h-14 w-14 rotate-[-8deg] items-center justify-center rounded-2xl border border-[#E8AFC0]/20 bg-[#E8AFC0]/10 text-[#E8AFC0] shadow-xl backdrop-blur-md">
-
-              <Link2 className="h-5 w-5" />
-
-            </div>
-
-          </div>
-
-
-          {/* Firma */}
-
-          <div className="absolute bottom-8 left-8 hidden sm:block">
-
-            <p className="text-sm font-semibold tracking-tight text-[#FFFDF8]">
-              Aura Atlas
-            </p>
-
-            <p className="mt-0.5 text-[11px] text-[#FFFDF8]/50">
-              by Tzalli Studio
-            </p>
-
-          </div>
-
-
-          {/* Texto visual */}
-
-          <div className="absolute bottom-8 right-8 hidden text-right sm:block">
-
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FFFDF8]/40">
-              Organiza
-            </p>
-
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E8AFC0]/70">
-              Conecta
-            </p>
-
-            <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#FFFDF8]/40">
-              Comparte
-            </p>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-            LADO DE CONTENIDO
-        ================================================== */}
-
-        <section className="flex items-center px-7 py-16 sm:px-12 lg:px-16 xl:px-24">
-
-          <div className="mx-auto w-full max-w-xl">
-
-
-            {/* Marca móvil */}
-
-            <div className="mb-12 flex items-center gap-3 lg:hidden">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#4A1115]">
-
-                <img
-                  src="/aura-atlas.png"
-                  alt="Aura Atlas"
-                  className="h-8 w-8"
-                />
-
-              </div>
-
-              <div>
-
-                <p className="text-sm font-semibold text-[#4A1115]">
-                  Aura Atlas
-                </p>
-
-                <p className="text-[10px] text-[#687584]">
-                  by Tzalli Studio
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* Badge */}
-
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#4A1115]/10 bg-[#FFFDF8] px-4 py-2 shadow-sm">
-
-              <Sparkles className="h-3.5 w-3.5 text-[#4A1115]" />
-
-              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#4A1115]">
-                Tu espacio educativo
-              </span>
-
-            </div>
-
-
-            {/* Título */}
-
-            <h1 className="mt-7 text-5xl font-bold leading-[1.02] tracking-[-0.05em] text-[#211719] sm:text-6xl xl:text-7xl">
-
-              Bienvenido a
-
-              <br />
-
-              <span className="relative inline-block text-[#4A1115]">
-
-                Aura Atlas.
-
-                <span className="absolute bottom-0 left-0 h-2 w-[72%] -rotate-[2deg] rounded-full bg-[#E8AFC0]/70" />
-
-              </span>
-
-            </h1>
-
-
-            {/* Descripción */}
-
-            <p className="mt-7 max-w-lg text-base leading-8 text-[#687584] sm:text-lg">
-
-              Tu espacio para transformar el contenido de una materia en una
-              experiencia de aprendizaje conectada.
-
-            </p>
-
-
-            {/* Pequeño mensaje */}
-
-            <div className="mt-8 flex items-start gap-4 rounded-2xl border border-[#4A1115]/10 bg-[#FFFDF8]/70 p-5">
-
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#E8AFC0]/30 text-[#4A1115]">
-
-                <Sparkles className="h-4 w-4" />
-
-              </div>
-
-              <div>
-
-                <p className="text-sm font-semibold text-[#211719]">
-                  Empecemos por tu espacio académico.
-                </p>
-
-                <p className="mt-1 text-sm leading-6 text-[#687584]">
-                  Primero configuraremos tu universidad, carrera y materias.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* Acción */}
-
-            <Button
-              size="lg"
-              onClick={() => router.push("/teacher")}
-              className="mt-8 h-14 rounded-2xl bg-[#4A1115] px-8 text-base font-semibold text-[#FFFDF8] shadow-xl shadow-[#4A1115]/20 transition-all duration-300 hover:-translate-y-1 hover:bg-[#5D171D] hover:shadow-2xl"
-            >
-
-              Comenzar
-
-              <ArrowRight className="ml-2 h-5 w-5" />
-
-            </Button>
-
-
-            {/* Mini proceso */}
-
-            <div className="mt-12 flex flex-wrap items-center gap-3">
-
-              <div className="flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E8AFC0]/30 text-[#4A1115]">
-                  <BookOpen className="h-3.5 w-3.5" />
-                </div>
-
-                <span className="text-xs font-medium text-[#687584]">
-                  Materia
-                </span>
-
-              </div>
-
-
-              <ArrowRight className="h-3.5 w-3.5 text-[#4A1115]/30" />
-
-
-              <div className="flex items-center gap-2">
-
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFFDF8] text-[#4A1115] shadow-sm">
-                  <Link2 className="h-3.5 w-3.5" />
-                </div>
-
-                <span className="text-xs font-medium text-[#687584]">
-                  Hipertexto
-                </span>
-
-              </div>
-
-            </div>
-
-
-            {/* Firma */}
-
-            <p className="mt-12 text-[11px] text-[#687584]/70">
-              Aura Atlas · by Tzalli Studio
-            </p>
-
-          </div>
-
-        </section>
-
+    <main className={styles.page}>
+      <div className={styles.background} aria-hidden="true">
+        <div className={styles.pinkCloud} />
+        <div className={styles.blueCloud} />
+        <svg
+          className={styles.meadow}
+          viewBox="0 0 1440 210"
+          fill="none"
+          preserveAspectRatio="xMidYMax slice"
+        >
+          <path
+            d="M0 135C300 238 454 49 800 115S1220 220 1440 114V210H0Z"
+            fill="#e8afc0"
+            fillOpacity=".16"
+          />
+          <path
+            d="M0 190C310 105 560 205 830 162S1250 97 1440 180V210H0Z"
+            fill="#8b9aaa"
+            fillOpacity=".12"
+          />
+          <g stroke="#8b9aaa" strokeWidth="2">
+            <path
+              d="M45 210Q92 134 55 56M67 148Q25 144 15 109Q53 112 67 148ZM69 111Q110 92 111 64Q78 73 69 111ZM1379 210Q1349 140 1390 65M1369 145Q1332 123 1332 93Q1365 100 1369 145ZM1375 116Q1410 107 1420 78Q1394 79 1375 116Z"
+              fill="#8b9aaa"
+              fillOpacity=".32"
+            />
+          </g>
+          <g fill="#e8afc0" stroke="#4a1115" strokeWidth="1">
+            <ellipse cx="54" cy="48" rx="8" ry="19" />
+            <ellipse
+              cx="54"
+              cy="48"
+              rx="8"
+              ry="19"
+              transform="rotate(60 54 48)"
+            />
+            <ellipse
+              cx="54"
+              cy="48"
+              rx="8"
+              ry="19"
+              transform="rotate(120 54 48)"
+            />
+            <circle cx="54" cy="48" r="5" fill="#4a1115" />
+          </g>
+        </svg>
       </div>
-
+      <header className={styles.header}>
+        <Link href="/" className={styles.brand} aria-label="Aura Atlas, inicio">
+          <Image src="/aura-atlas.png" width={35} height={35} alt="" priority />
+          <span>
+            Aura Atlas<small>EL CONOCIMIENTO CONECTA</small>
+          </span>
+        </Link>
+        <Link href="/" className={styles.backLink}>
+          <ArrowLeft size={14} /> Volver a explorar
+        </Link>
+      </header>
+      <div className={styles.content}>
+        <div className={styles.chapter}>
+          <span>
+            <span className={styles.statusDot} /> TU PRIMER CAPÍTULO
+          </span>
+          <span>
+            UN COMIENZO LLENO DE POSIBILIDADES <Sprout size={14} />
+          </span>
+        </div>
+        <div className={styles.glass}>
+          <div className={styles.hero}>
+            <section className={styles.copy} aria-labelledby="welcome-title">
+              <span className={styles.welcomeBadge}>
+                <Sprout size={14} /> BIENVENIDO A AURA ATLAS
+              </span>
+              <h1 id="welcome-title">
+                Tu forma de enseñar
+                <br />
+                tiene un <em>nuevo hogar.</em>
+              </h1>
+              <p>
+                Qué bonito que estés aquí. Este es tu espacio para cultivar
+                ideas, conectar lo que sabes y dar vida a nuevas formas de
+                aprender.
+              </p>
+              <div className={styles.nextStep}>
+                <span className={styles.nextIcon}>
+                  <GraduationCap size={21} />
+                </span>
+                <div>
+                  <strong>Primero, hagámoslo tuyo.</strong>
+                  <p>
+                    Cuéntanos un poco de ti y encuentra tu espacio académico.
+                    Después vendrán las grandes ideas.
+                  </p>
+                </div>
+              </div>
+              <Link href="/teacher" className={styles.primaryButton}>
+                Configurar mi espacio <ArrowUpRight size={19} />
+              </Link>
+              <span className={styles.reassurance}>
+                <Check size={13} /> No necesitas tenerlo todo listo para
+                empezar.
+              </span>
+            </section>
+            <div className={styles.visual}>
+              <span className={styles.visualEyebrow}>
+                AQUÍ, CADA IDEA PUEDE CRECER
+              </span>
+              <div className={styles.art}>
+                <LearningGarden />
+              </div>
+              <div className={`${styles.floatingCard} ${styles.spaceCard}`}>
+                <span className={styles.cardIcon}>
+                  <Sprout size={20} />
+                </span>
+                <div>
+                  <small>UN LUGAR CON TU PERSPECTIVA</small>
+                  <strong>Tu espacio docente</strong>
+                </div>
+                <span className={styles.checkBadge}>
+                  <Check size={12} />
+                </span>
+              </div>
+              <div className={`${styles.floatingCard} ${styles.ideaCard}`}>
+                <Link2 size={15} />
+                <span>Una idea lleva a otra.</span>
+              </div>
+              <Butterfly className={styles.extraButterfly} />
+              <span className={styles.caption}>
+                Lo que sabes puede abrir nuevos caminos.
+              </span>
+            </div>
+          </div>
+          <section className={styles.journey} aria-labelledby="journey-title">
+            <div className={styles.journeyHeading}>
+              <h2 id="journey-title">
+                Un pequeño recorrido.
+                <br />
+                <em>Muchas posibilidades.</em>
+              </h2>
+              <span>ASÍ EMPIEZA TU UNIVERSO</span>
+            </div>
+            <ol className={styles.steps}>
+              {firstSteps.map(({ number, icon: Icon, title, description }) => (
+                <li key={number}>
+                  <div className={styles.stepTop}>
+                    <span className={styles.stepNumber}>{number}</span>
+                    <Icon size={18} />
+                  </div>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+        <p className={styles.bottomNote}>
+          <span className={styles.littleFlower}>✳</span> Tu perspectiva es el
+          punto de partida. El resto, lo construyes a tu ritmo.
+        </p>
+      </div>
+      <footer className={styles.footer}>
+        <span>CULTIVA IDEAS. COMPARTE CONOCIMIENTO.</span>
+        <a
+          href="https://tzalli-studio.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Hecho por Tzalli Studio <ArrowRight size={12} />
+        </a>
+      </footer>
     </main>
   );
 }

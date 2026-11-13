@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { get } from "@/lib/api";
+import { get } from "@/lib/server-api";
 
 import { CareerPage } from "@/components/dashboard/careers/career-page";
 

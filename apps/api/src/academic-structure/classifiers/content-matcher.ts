@@ -1,9 +1,6 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 
-export type MatchConfidence =
-  | "HIGH"
-  | "MEDIUM"
-  | "LOW";
+export type MatchConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export type ContentMatchCandidate = {
   number: string;
@@ -30,6 +27,7 @@ export type ContentMatchResult = {
 type TopicInput = {
   number: string;
   title: string;
+  subtopics?: { number: string; title: string }[];
 };
 
 @Injectable()
@@ -39,145 +37,104 @@ export class ContentMatcher {
     fileText: string,
     topics: TopicInput[],
   ): ContentMatchResult {
-    const normalizedFileName =
-      this.normalizeText(fileName);
+    const normalizedFileName = this.normalizeText(fileName);
 
-    const normalizedFileText =
-      this.normalizeText(fileText);
+    const normalizedFileText = this.normalizeText(fileText);
 
-    const fileNumber =
-      this.extractTopicNumber(fileName);
+    const fileNumber = this.extractTopicNumber(fileName);
 
-    const fileNameWords =
-      this.getRelevantWords(
-        normalizedFileName,
-      );
+    const fileNameWords = this.getRelevantWords(normalizedFileName);
 
-    const fileContentWords =
-      this.getRelevantWords(
-        normalizedFileText,
-      );
+    const fileContentWords = this.getRelevantWords(normalizedFileText);
 
-    const wordWeights =
-      this.calculateWordWeights(
-        topics,
-      );
+    const wordWeights = this.calculateWordWeights(topics);
 
-    const candidates =
-      topics
-        .map((topic) => {
-          const normalizedTitle =
-            this.normalizeText(
-              topic.title,
-            );
-
-          const titleWords =
-            this.getRelevantWords(
-              normalizedTitle,
-            );
-
-          const numberMatch =
-            fileNumber === topic.number;
-
-          const titleScore =
-            this.calculateWeightedWordScore(
-              fileNameWords,
-              titleWords,
-              wordWeights,
-            );
-
-          const contentScore =
-            this.calculateWeightedWordScore(
-              fileContentWords,
-              titleWords,
-              wordWeights,
-            );
-
-          let score: number;
-
-          if (numberMatch) {
-            score =
-              titleScore * 0.25 +
-              contentScore * 0.40 +
-              0.35;
-          } else {
-            score =
-              titleScore * 0.30 +
-              contentScore * 0.70;
-          }
-
-          return {
-            number: topic.number,
-            title: topic.title,
-
-            score: Number(
-              Math.min(score, 1).toFixed(3),
-            ),
-
-            signals: {
-              numberMatch,
-              titleScore: Number(
-                titleScore.toFixed(3),
-              ),
-              contentScore: Number(
-                contentScore.toFixed(3),
-              ),
-            },
-          };
-        })
-        .sort(
-          (a, b) =>
-            b.score - a.score,
+    const candidates = topics
+      .map((topic) => {
+        const matchedSubtopic = topic.subtopics?.find(
+          (subtopic) => subtopic.number === fileNumber,
+        );
+        const normalizedTitle = this.normalizeText(
+          matchedSubtopic?.title ?? topic.title,
         );
 
-    const best =
-      candidates[0] ?? null;
+        const titleWords = this.getRelevantWords(normalizedTitle);
 
-    const second =
-      candidates[1] ?? null;
+        const numberMatch = fileNumber === topic.number || !!matchedSubtopic;
+
+        const titleScore = this.calculateWeightedWordScore(
+          fileNameWords,
+          titleWords,
+          wordWeights,
+        );
+
+        const contentScore = this.calculateWeightedWordScore(
+          fileContentWords,
+          titleWords,
+          wordWeights,
+        );
+
+        let score: number;
+
+        if (numberMatch) {
+          score = titleScore * 0.25 + contentScore * 0.4 + 0.35;
+        } else {
+          score = titleScore * 0.3 + contentScore * 0.7;
+        }
+
+        return {
+          number: topic.number,
+          title: topic.title,
+
+          score: Number(Math.min(score, 1).toFixed(3)),
+
+          signals: {
+            numberMatch,
+            titleScore: Number(titleScore.toFixed(3)),
+            contentScore: Number(contentScore.toFixed(3)),
+          },
+        };
+      })
+      .sort((a, b) => b.score - a.score);
+
+    const best = candidates[0] ?? null;
+
+    const second = candidates[1] ?? null;
 
     const margin =
       best && second
-        ? Number(
-            (
-              best.score -
-              second.score
-            ).toFixed(3),
-          )
+        ? Number((best.score - second.score).toFixed(3))
         : best
           ? best.score
           : 0;
 
-    const confidence =
-      this.calculateConfidence(
-        best,
-        margin,
-      );
+    const confidence = this.calculateConfidence(best, margin);
 
-    const suggestedTopic =
-      confidence === "LOW"
-        ? null
-        : best;
+    const suggestedTopic = confidence === 'LOW' ? null : best;
 
     return {
       suggestedTopic,
       confidence,
       margin,
-      candidates: candidates.slice(
-        0,
-        3,
-      ),
+      candidates: candidates.slice(0, 3),
     };
   }
 
   private calculateConfidence(
-    best:
-      | ContentMatchCandidate
-      | null,
+    best: ContentMatchCandidate | null,
     margin: number,
   ): MatchConfidence {
     if (!best) {
-      return "LOW";
+      return 'LOW';
+    }
+    // A known topic/subtopic number plus its title is an explicit naming
+    // signal, including images and Office files without extracted PDF text.
+    if (
+      best.signals.numberMatch &&
+      best.signals.titleScore >= 0.7 &&
+      margin >= 0.2
+    ) {
+      return 'HIGH';
     }
 
     /**
@@ -187,11 +144,8 @@ export class ContentMatcher {
      * fuerte Y está claramente por encima
      * del segundo candidato.
      */
-    if (
-      best.score >= 0.70 &&
-      margin >= 0.20
-    ) {
-      return "HIGH";
+    if (best.score >= 0.7 && margin >= 0.2) {
+      return 'HIGH';
     }
 
     /**
@@ -200,146 +154,92 @@ export class ContentMatcher {
      * Tenemos una coincidencia razonable,
      * pero queremos que el docente la revise.
      */
-    if (
-      best.score >= 0.45 &&
-      margin >= 0.10
-    ) {
-      return "MEDIUM";
+    if (best.score >= 0.45 && margin >= 0.1) {
+      return 'MEDIUM';
     }
 
-    return "LOW";
+    return 'LOW';
   }
 
-  private normalizeText(
-    text: string,
-  ): string {
+  private normalizeText(text: string): string {
     return text
       .toLowerCase()
-      .normalize("NFD")
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(
-        /[\u0300-\u036f]/g,
-        "",
+        /\.(pdf|docx?|pptx?|xlsx?|jpe?g|png|webp|mp3|wav|ogg|mp4|webm|mov)$/i,
+        '',
       )
-      .replace(
-        /\.(pdf|docx?|pptx?|xlsx?|mp3|wav|mp4|mov)$/i,
-        "",
-      )
-      .replace(
-        /[^a-z0-9.\s]/g,
-        " ",
-      )
-      .replace(
-        /\s+/g,
-        " ",
-      )
+      .replace(/[^a-z0-9.\s]/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
-  private extractTopicNumber(
-    fileName: string,
-  ): string | null {
-    const match =
-      fileName.match(
-        /(?:^|\s|[_-])(\d+\.\d+(?:\.\d+)*)(?:\s|[_-]|\.|$)/,
-      );
+  private extractTopicNumber(fileName: string): string | null {
+    const match = fileName.match(
+      /(?:^|\s|[_-])(\d+\.\d+(?:\.\d+)*)(?:\s|[_-]|\.|$)/,
+    );
 
     return match?.[1] ?? null;
   }
 
-  private getRelevantWords(
-    text: string,
-  ): string[] {
-    const stopWords =
-      new Set([
-        "a",
-        "al",
-        "de",
-        "del",
-        "el",
-        "la",
-        "las",
-        "los",
-        "en",
-        "para",
-        "por",
-        "con",
-        "y",
-        "o",
-        "un",
-        "una",
-        "unos",
-        "unas",
-        "que",
-        "se",
-        "su",
-        "sus",
-        "como",
-        "sobre",
-      ]);
+  private getRelevantWords(text: string): string[] {
+    const stopWords = new Set([
+      'a',
+      'al',
+      'de',
+      'del',
+      'el',
+      'la',
+      'las',
+      'los',
+      'en',
+      'para',
+      'por',
+      'con',
+      'y',
+      'o',
+      'un',
+      'una',
+      'unos',
+      'unas',
+      'que',
+      'se',
+      'su',
+      'sus',
+      'como',
+      'sobre',
+    ]);
 
     return [
       ...new Set(
         text
           .split(/\s+/)
-          .map((word) =>
-            word.replace(
-              /^\d+(?:\.\d+)*$/,
-              "",
-            ),
-          )
-          .filter(
-            (word) =>
-              word.length >= 3 &&
-              !stopWords.has(word),
-          ),
+          .map((word) => word.replace(/^\d+(?:\.\d+)*$/, ''))
+          .filter((word) => word.length >= 3 && !stopWords.has(word)),
       ),
     ];
   }
 
-  private calculateWordWeights(
-    topics: TopicInput[],
-  ): Map<string, number> {
-    const occurrences =
-      new Map<string, number>();
+  private calculateWordWeights(topics: TopicInput[]): Map<string, number> {
+    const occurrences = new Map<string, number>();
 
     for (const topic of topics) {
-      const words =
-        this.getRelevantWords(
-          this.normalizeText(
-            topic.title,
-          ),
-        );
+      const words = this.getRelevantWords(this.normalizeText(topic.title));
 
       for (const word of words) {
-        occurrences.set(
-          word,
-          (occurrences.get(word) ?? 0) +
-            1,
-        );
+        occurrences.set(word, (occurrences.get(word) ?? 0) + 1);
       }
     }
 
-    const totalTopics =
-      topics.length;
+    const totalTopics = topics.length;
 
-    const weights =
-      new Map<string, number>();
+    const weights = new Map<string, number>();
 
-    for (const [
-      word,
-      count,
-    ] of occurrences) {
-      const weight =
-        totalTopics /
-        (count * totalTopics);
+    for (const [word, count] of occurrences) {
+      const weight = totalTopics / (count * totalTopics);
 
-      weights.set(
-        word,
-        Math.max(
-          0.2,
-          Math.min(weight, 1),
-        ),
-      );
+      weights.set(word, Math.max(0.2, Math.min(weight, 1)));
     }
 
     return weights;
@@ -350,9 +250,7 @@ export class ContentMatcher {
     targetWords: string[],
     weights: Map<string, number>,
   ): number {
-    if (
-      targetWords.length === 0
-    ) {
+    if (targetWords.length === 0) {
       return 0;
     }
 
@@ -360,14 +258,11 @@ export class ContentMatcher {
     let matchedWeight = 0;
 
     for (const word of targetWords) {
-      const weight =
-        weights.get(word) ?? 0.2;
+      const weight = weights.get(word) ?? 0.2;
 
       totalWeight += weight;
 
-      if (
-        sourceWords.includes(word)
-      ) {
+      if (sourceWords.includes(word)) {
         matchedWeight += weight;
       }
     }
@@ -376,9 +271,6 @@ export class ContentMatcher {
       return 0;
     }
 
-    return (
-      matchedWeight /
-      totalWeight
-    );
+    return matchedWeight / totalWeight;
   }
 }

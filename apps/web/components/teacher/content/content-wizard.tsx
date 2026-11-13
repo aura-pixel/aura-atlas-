@@ -1,1323 +1,964 @@
 "use client";
-
-import { useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
-  FileUp,
-  Link2,
+  BookOpen,
   Check,
   CheckCircle2,
-  AlertCircle,
-  ChevronDown,
-  Sparkles,
-  X,
-  FileText,
+  FileUp,
+  Link2,
+  LoaderCircle,
+  Plus,
   Video,
+  X,
+  AlertCircle,
 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { postForm, post } from "@/lib/api";
-import { AddContent, type AddedLink } from "./add-content";
-
-
-type SuggestedTopic = {
-  number: string;
-  title: string;
-  score: number;
-  signals: {
-    numberMatch: boolean;
-    titleScore: number;
-    contentScore: number;
-  };
-};
-
-type ContentMatchFile = {
+import { get, post, patch, del } from "@/lib/api";
+import type { ContentUnit } from "../subject/types";
+import styles from "./material-workspace.module.css";
+type Kind = "FILE" | "VIDEO" | "LINK";
+type Status = "QUEUED" | "UPLOADING" | "PENDING" | "SAVING" | "SAVED" | "ERROR";
+type Upload = {
+  uploadId: string;
   name: string;
   mimeType: string;
   size: number;
-  url: string;
-  textLength: number;
-  suggestedTopic: SuggestedTopic | null;
-  confidence: "HIGH" | "MEDIUM" | "LOW";
-  margin: number;
-  candidates: SuggestedTopic[];
+  confidence?: string;
+  extractionError?: string;
+  suggestedTopic?: { number: string; title: string } | null;
 };
-
-type UploadResponse = {
-  hypertextId: string;
-  subjectId: string;
-  totalFiles: number;
-  totalTopics: number;
-  files: ContentMatchFile[];
+type Resource = {
+  key: string;
+  materialId?: string;
+  uploadId?: string;
+  name: string;
+  kind: Kind;
+  size: number;
+  mimeType?: string;
+  url?: string;
+  topicNumber: string;
+  status: Status;
+  file?: File;
+  error?: string;
+  suggestedTopic?: { number: string; title: string } | null;
 };
-
-type ContentWizardProps = {
-  subjectId: string;
-  initialStructure?: unknown | null;
-  onContinue?: () => void;
-  onClose: () => void;
+type Remote = {
+  id: string;
+  uploadId?: string;
+  name: string;
+  kind: Kind;
+  mimeType?: string;
+  size: number;
+  url?: string;
+  topicNumber: string | null;
+  status: "SAVED" | "PENDING";
+  suggestedTopic?: { number: string; title: string } | null;
 };
-
-type WizardStep = 1 | 2 | 3;
-
-const steps = [
+const kinds = [
   {
-    number: 1,
-    title: "Material",
-    description: "Sube tus archivos",
+    id: "FILE" as const,
+    label: "Archivos",
+    description: "PDF, documentos, imágenes, audio y video.",
+    icon: FileUp,
   },
   {
-    number: 2,
-    title: "Organización",
-    description: "Asigna cada material",
+    id: "VIDEO" as const,
+    label: "Videos",
+    description: "Videos de YouTube u otras plataformas.",
+    icon: Video,
   },
   {
-    number: 3,
-    title: "Revisión",
-    description: "Confirma el contenido",
+    id: "LINK" as const,
+    label: "Enlaces",
+    description: "Lecturas, sitios y recursos de la web.",
+    icon: Link2,
   },
 ];
-
 export function ContentWizard({
   subjectId,
   initialStructure,
-  onContinue,
-  onClose,
-}: ContentWizardProps) {
-  const [step, setStep] = useState<WizardStep>(1);
-
-  const [files, setFiles] = useState<File[]>([]);
-  const [videos, setVideos] = useState<AddedVideo[]>([]);
-  const [links, setLinks] = useState<AddedLink[]>([]);
-
-  const [results, setResults] =
-    useState<ContentMatchFile[]>([]);
-
-  const [selectedTopics, setSelectedTopics] =
-    useState<Record<string, SuggestedTopic | null>>({});
-
-  const [editingFile, setEditingFile] =
-    useState<string | null>(null);
-
-  const [uploading, setUploading] =
-    useState(false);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  async function handleNext() {
-    if (step === 1) {
-  if (
-  files.length === 0 &&
-  videos.length === 0 &&
-  links.length === 0
-) {
-  return;
-}
-
-  try {
-    setUploading(true);
-
-    if (files.length > 0) {
-      const formData = new FormData();
-
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      const result =
-        await postForm<UploadResponse>(
-          `/materials/upload/${subjectId}`,
-          formData,
-        );
-
-      setResults(result.files);
-
-      const initialSelections: Record<
-        string,
-        SuggestedTopic | null
-      > = {};
-
-      result.files.forEach((file) => {
-        initialSelections[file.name] =
-          file.suggestedTopic;
-      });
-
-      setSelectedTopics(initialSelections);
-    }
-
-    setStep(2);
-  } catch (error) {
-    console.error(
-      "Error al procesar los archivos:",
-      error,
-    );
-  } finally {
-    setUploading(false);
+  storageKey,
+  onBusyChange,
+  onDirtyChange,
+  onGoToHypertext,
+  onReload,
+}: {
+  subjectId: string;
+  initialStructure?: unknown;
+  storageKey?: string;
+  onBusyChange?: (busy: boolean) => void;
+  onDirtyChange?: (dirty: boolean) => void;
+  onGoToHypertext: () => void;
+  onReload: () => void;
+}) {
+  const units = (initialStructure as { units?: ContentUnit[] })?.units ?? [];
+  const topics = units.flatMap((u) => u.topics);
+  const [rows, setRows] = useState<Resource[]>([]);
+  const rowsRef = useRef<Resource[]>([]);
+  const [selected, setSelected] = useState<Kind[]>([]);
+  const selectedRef = useRef<Kind[]>([]);
+  const [active, setActive] = useState<Kind>("FILE");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [extra, setExtra] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
+  const [topic, setTopic] = useState("");
+  const [externalBusy, setExternalBusy] = useState(false);
+  const [filter, setFilter] = useState("ALL");
+  const jobs = useRef<Resource[]>([]);
+  const processing = useRef(false);
+  const mounted = useRef(true);
+  const preferenceKey = `atlas-materials:${storageKey ?? subjectId}`;
+  function update(fn: (current: Resource[]) => Resource[]) {
+    if (!mounted.current) return;
+    const next = fn(rowsRef.current);
+    rowsRef.current = next;
+    setRows(next);
   }
-
-  return;
-}
-
-    if (step === 2) {
-      setStep(3);
+  function change(key: string, data: Partial<Resource>) {
+    update((current) =>
+      current.map((r) => (r.key === key ? { ...r, ...data } : r)),
+    );
+  }
+  function choose(next: Kind[]) {
+    selectedRef.current = next;
+    setSelected(next);
+    try {
+      sessionStorage.setItem(preferenceKey, JSON.stringify(next));
+    } catch {}
+  }
+  useEffect(() => {
+    mounted.current = true;
+    let alive = true;
+    setLoading(true);
+    get<{ resources: Remote[] }>(`/materials/workspace/${subjectId}`)
+      .then((data) => {
+        if (!alive) return;
+        const restored: Resource[] = data.resources.map((r) => ({
+          ...r,
+          key: r.id,
+          materialId: r.status === "SAVED" ? r.id : undefined,
+          topicNumber: r.topicNumber ?? "",
+        }));
+        update(() => restored);
+        let preferences: Kind[] = [];
+        try {
+          const saved = JSON.parse(
+            sessionStorage.getItem(preferenceKey) ?? "[]",
+          );
+          if (Array.isArray(saved))
+            preferences = saved.filter((k) =>
+              ["FILE", "VIDEO", "LINK"].includes(k),
+            );
+        } catch {}
+        const next = [
+          ...new Set([...preferences, ...restored.map((r) => r.kind)]),
+        ];
+        choose(next);
+        setActive(next[0] ?? "FILE");
+        setStarted(restored.length > 0);
+      })
+      .catch((e) => {
+        if (alive)
+          setLoadError(
+            e instanceof Error ? e.message : "No pudimos cargar el material.",
+          );
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+      mounted.current = false;
+    };
+  }, [subjectId, preferenceKey]);
+  const busy =
+    externalBusy ||
+    rows.some((r) => ["QUEUED", "UPLOADING", "SAVING"].includes(r.status));
+  const dirty =
+    rows.some((r) => r.status !== "SAVED") || !!name.trim() || !!url.trim();
+  useEffect(() => {
+    onBusyChange?.(busy);
+    return () => onBusyChange?.(false);
+  }, [busy, onBusyChange]);
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
+  function selectKind(kind: Kind) {
+    const firstSelection = selectedRef.current.length === 0;
+    if (!selectedRef.current.includes(kind))
+      choose([...selectedRef.current, kind]);
+    if (started || firstSelection) setActive(kind);
+    setFilter("ALL");
+    setExtra(false);
+    setError("");
+    setNotice("");
+  }
+  function toggle(kind: Kind) {
+    if (
+      selectedRef.current.includes(kind) &&
+      !rowsRef.current.some((r) => r.kind === kind)
+    ) {
+      const next = selectedRef.current.filter((k) => k !== kind);
+      choose(next);
+      if (active === kind) setActive(next[0] ?? "FILE");
+    } else selectKind(kind);
+  }
+  function advance(kind: Kind) {
+    const current = rowsRef.current;
+    if (current.some((r) => r.kind === kind && r.status !== "SAVED")) return;
+    const next = selectedRef.current.find(
+      (k) =>
+        k !== kind &&
+        !current.some((r) => r.kind === k && r.status === "SAVED"),
+    );
+    if (next) {
+      setActive(next);
+      setFilter("ALL");
+      setNotice(
+        `Material guardado. Ahora puedes añadir ${kinds.find((k) => k.id === next)!.label.toLowerCase()}.`,
+      );
+    }
+  }
+  function occupied(number: string, key: string) {
+    return rowsRef.current.some(
+      (r) =>
+        r.key !== key &&
+        r.kind === "FILE" &&
+        r.status === "SAVED" &&
+        r.topicNumber === number,
+    );
+  }
+  async function assign(row: Resource, number: string) {
+    if (!number || !topics.some((t) => t.number === number)) return;
+    if (row.kind === "FILE" && occupied(number, row.key)) {
+      change(row.key, {
+        error: "Este tema ya tiene un archivo. Elige otro tema.",
+      });
       return;
     }
-
-    if (step === 3) {
-      const unassignedFiles =
-        results.filter(
-          (file) =>
-            !selectedTopics[file.name],
+    change(row.key, {
+      status: "SAVING",
+      topicNumber: number,
+      error: undefined,
+    });
+    try {
+      if (row.materialId) {
+        await patch(`/materials/${row.materialId}/topic`, {
+          topicNumber: number,
+        });
+        change(row.key, { status: "SAVED" });
+      } else {
+        const result = await post<{ materials: { id: string }[] }>(
+          `/materials/save/${subjectId}`,
+          {
+            files: [
+              {
+                uploadId: row.uploadId,
+                name: row.name,
+                mimeType: row.mimeType,
+                size: row.size,
+                topicNumber: number,
+                type:
+                  row.mimeType === "application/pdf"
+                    ? "PDF"
+                    : row.mimeType?.startsWith("image/")
+                      ? "IMAGE"
+                      : "OTHER",
+              },
+            ],
+          },
         );
-
-      if (unassignedFiles.length > 0) {
-        console.warn(
-          "Hay archivos sin tema asignado:",
-          unassignedFiles,
+        change(row.key, {
+          status: "SAVED",
+          materialId: result.materials[0]?.id,
+          file: undefined,
+        });
+      }
+      setEditing(null);
+      if (!processing.current) onReload();
+      advance(row.kind);
+    } catch (e) {
+      change(row.key, {
+        status: row.materialId ? "SAVED" : "PENDING",
+        error:
+          e instanceof Error
+            ? e.message
+            : "No pudimos guardar la asignación. Vuelve a elegir el tema.",
+      });
+    }
+  }
+  async function runQueue() {
+    if (processing.current) return;
+    processing.current = true;
+    while (jobs.current.length && mounted.current) {
+      const row = jobs.current.shift()!;
+      if (!rowsRef.current.some((r) => r.key === row.key)) continue;
+      change(row.key, { status: "UPLOADING", error: undefined });
+      try {
+        const form = new FormData();
+        form.append("files", row.file!);
+        const response = await post<{ files: Upload[] }>(
+          `/materials/upload/${subjectId}`,
+          form,
         );
-
+        const uploaded = response.files[0];
+        if (!uploaded)
+          throw Error("El archivo no pudo procesarse. Inténtalo de nuevo.");
+        const pending: Resource = {
+          ...row,
+          ...uploaded,
+          status: "PENDING",
+          topicNumber: "",
+          error: uploaded.extractionError,
+        };
+        change(row.key, pending);
+        if (
+          uploaded.confidence === "HIGH" &&
+          uploaded.suggestedTopic &&
+          !occupied(uploaded.suggestedTopic.number, row.key)
+        ) {
+          await assign(pending, uploaded.suggestedTopic.number);
+        }
+      } catch (e) {
+        change(row.key, {
+          status: "ERROR",
+          error:
+            e instanceof Error
+              ? e.message
+              : "No pudimos subir este archivo. Puedes reintentarlo.",
+        });
+      }
+    }
+    processing.current = false;
+    if (mounted.current) {
+      advance("FILE");
+      onReload();
+    }
+  }
+  function addFiles(files: File[]) {
+    setError("");
+    if (
+      rowsRef.current.filter((r) => r.kind === "FILE").length + files.length >
+      topics.length
+    ) {
+      setError(
+        `Tu programa tiene ${topics.length} temas. Puedes añadir hasta ${topics.length} archivos en total, uno por tema.`,
+      );
+      return;
+    }
+    const allowed =
+      /\.(pdf|docx|pptx|xlsx|jpe?g|png|webp|mp3|wav|ogg|mp4|webm)$/i;
+    if (files.some((f) => f.size > 20 * 1024 * 1024 || !allowed.test(f.name))) {
+      setError(
+        "Usa formatos compatibles y archivos de hasta 20 MB. Divide los documentos grandes por tema.",
+      );
+      return;
+    }
+    const additions: Resource[] = files.map((file) => ({
+      key: crypto.randomUUID(),
+      name: file.name,
+      kind: "FILE",
+      size: file.size,
+      topicNumber: "",
+      status: "QUEUED",
+      file,
+    }));
+    update((current) => [...current, ...additions]);
+    jobs.current.push(...additions);
+    setStarted(true);
+    void runQueue();
+  }
+  async function remove(row: Resource) {
+    if (row.uploadId) {
+      change(row.key, { status: "SAVING" });
+      try {
+        await del(`/materials/pending/${row.uploadId}`);
+      } catch (e) {
+        change(row.key, {
+          status: "PENDING",
+          error:
+            e instanceof Error ? e.message : "No pudimos descartar la carga.",
+        });
         return;
       }
-
-      try {
-        setSaving(true);
-
-       const fileMaterials = results.map(
-  (file) => {
-    const topic =
-      selectedTopics[file.name];
-
-    return {
-      name: file.name,
-      mimeType: file.mimeType,
-      size: file.size,
-      url: file.url,
-      topicNumber: topic!.number,
-      type:
-  file.mimeType === "application/pdf"
-    ? "PDF"
-    : file.mimeType.startsWith("image/")
-    ? "IMAGE"
-    : "OTHER",
-    };
-  },
-);
-
-const videoMaterials = videos.map(
-  (video) => ({
-    name: video.name,
-    mimeType: "video/external",
-    size: 0,
-    url: video.url,
-    topicNumber: video.topicNumber,
-    type: "VIDEO",
-  }),
-);
-
-const linkMaterials = links.map(
-  (link) => ({
-    name: link.name,
-    mimeType: "text/uri-list",
-    size: 0,
-    url: link.url,
-    topicNumber: link.topicNumber,
-    type: "LINK",
-  }),
-);
-
-const materials = [
-  ...fileMaterials,
-  ...videoMaterials,
-  ...linkMaterials,
-];
-
-        const result =
-          await post<{
-            message: string;
-            total: number;
-            materials: unknown[];
-          }>(
-            `/materials/save/${subjectId}`,
+    }
+    jobs.current = jobs.current.filter((r) => r.key !== row.key);
+    update((current) => current.filter((r) => r.key !== row.key));
+  }
+  async function addExternal(event: FormEvent) {
+    event.preventDefault();
+    if (externalBusy || active === "FILE") return;
+    setError("");
+    let address: URL;
+    try {
+      address = new URL(url);
+      if (
+        !["http:", "https:"].includes(address.protocol) ||
+        address.username ||
+        address.password
+      )
+        throw Error();
+    } catch {
+      setError("Usa una dirección http o https válida.");
+      return;
+    }
+    if (!name.trim() || !topic) return;
+    setExternalBusy(true);
+    try {
+      const result = await post<{ materials: { id: string }[] }>(
+        `/materials/save/${subjectId}`,
+        {
+          files: [
             {
-              files: materials,
+              name: name.trim(),
+              url: address.href,
+              size: 0,
+              mimeType: active === "VIDEO" ? "video/external" : "text/uri-list",
+              type: active,
+              topicNumber: topic,
             },
-          );
-
-        console.log(
-          "Materiales guardados:",
-          result,
-        );
-
-        onContinue?.();
-
-        onClose();
-      } catch (error) {
-        console.error(
-          "Error al guardar materiales:",
-          error,
-        );
-      } finally {
-        setSaving(false);
-      }
-
-      return;
-    }
-  }
-
-  function handleBack() {
-    if (step > 1) {
-      setStep(
-        (current) =>
-          (current - 1) as WizardStep,
+          ],
+        },
       );
-
-      return;
+      update((current) =>
+        current.some((row) => row.materialId === result.materials[0].id)
+          ? current
+          : [
+              ...current,
+              {
+                key: result.materials[0].id,
+                materialId: result.materials[0].id,
+                name: name.trim(),
+                kind: active,
+                url: address.href,
+                size: 0,
+                topicNumber: topic,
+                status: "SAVED",
+              },
+            ],
+      );
+      setName("");
+      setUrl("");
+      setStarted(true);
+      onReload();
+      setNotice(`${active === "VIDEO" ? "Video" : "Enlace"} guardado.`);
+      advance(active);
+    } catch (e) {
+      setError(
+        e instanceof Error
+          ? e.message
+          : "No pudimos guardar el recurso. Tus datos se conservan para reintentar.",
+      );
+    } finally {
+      setExternalBusy(false);
     }
-
-    onClose();
   }
-
-  function getConfidenceLabel(
-    confidence: ContentMatchFile["confidence"],
-  ) {
-    switch (confidence) {
-      case "HIGH":
-        return "Alta confianza";
-
-      case "MEDIUM":
-        return "Confianza media";
-
-      case "LOW":
-        return "Requiere revisión";
-    }
-  }
-
-  function removeFile(index: number) {
-    setFiles((current) =>
-      current.filter(
-        (_, fileIndex) =>
-          fileIndex !== index,
-      ),
+  function options(row?: Resource) {
+    return (
+      <>
+        <option value="">Elige un tema</option>
+        {topics.map((t) => (
+          <option
+            key={t.number}
+            value={t.number}
+            disabled={row?.kind === "FILE" && occupied(t.number, row.key)}
+          >
+            {t.number} · {t.title}
+            {row?.kind === "FILE" && occupied(t.number, row.key)
+              ? " (con archivo)"
+              : ""}
+          </option>
+        ))}
+      </>
     );
   }
-
-  const assignedCount =
-  results.filter(
-    (file) =>
-      selectedTopics[file.name],
-  ).length;
-
-const totalMaterials =
-  results.length +
-  videos.length +
-  links.length;
-
-const allAssigned =
-  totalMaterials > 0 &&
-  assignedCount + videos.length + links.length ===
-    totalMaterials;
-
-  return (
-    <section className="relative max-w-5xl pb-8">
-
-      {/* =====================================================
-          DECORACIÓN
-      ====================================================== */}
-
-      <div className="pointer-events-none absolute -right-32 -top-24 h-72 w-72 rounded-full bg-[#E8AFC0]/20 blur-3xl" />
-
-      <div className="pointer-events-none absolute -left-32 bottom-40 h-72 w-72 rounded-full bg-[#8EA0B5]/10 blur-3xl" />
-
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
-
-      <div className="relative">
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="group mb-7 inline-flex items-center gap-2 text-sm font-medium text-[#687584] transition-colors hover:text-[#4A1115]"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#4A1115]/10 bg-[#FFFDF8] transition-transform group-hover:-translate-x-1">
-            <ArrowLeft className="h-4 w-4" />
-          </span>
-
-          Volver a contenidos
-        </button>
-
-        <div className="max-w-3xl">
-
-          <div className="flex items-center gap-2">
-
-            <Sparkles className="h-4 w-4 text-[#4A1115]" />
-
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#4A1115]">
-              Nuevo contenido
-            </span>
-
-          </div>
-
-          <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em] text-[#211719]">
-            Dale contenido
-            <br />
-
-            <span className="text-[#4A1115]">
-              a tu hipertexto.
-            </span>
-          </h2>
-
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-[#687584]">
-            Sube tus materiales y deja que Aura Atlas
-            te ayude a encontrar dónde pertenece cada uno.
-          </p>
-
-        </div>
+  const saved = rows.filter((r) => r.status === "SAVED");
+  const pending = rows.filter((r) => r.status !== "SAVED");
+  const covered = new Set(saved.map((r) => r.topicNumber)).size;
+  const selectedReady =
+    selected.length > 0 &&
+    selected.every((k) => saved.some((r) => r.kind === k));
+  const ready = selectedReady && !pending.length && !busy && saved.length > 0;
+  const filesCount = rows.filter((r) => r.kind === "FILE").length;
+  const visible = rows.filter(
+    (r) =>
+      r.kind === active &&
+      (filter === "ALL" ||
+        (filter === "SAVED" ? r.status === "SAVED" : r.status !== "SAVED")),
+  );
+  if (loading)
+    return (
+      <div className={styles.loading} role="status">
+        <LoaderCircle className="animate-spin" size={24} /> Preparando tu
+        biblioteca de materiales…
       </div>
-
-
-      {/* =====================================================
-          STEPPER
-      ====================================================== */}
-
-      <div className="relative mt-10 rounded-[2rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-4 shadow-sm sm:p-5">
-
-        <div className="flex items-center">
-
-          {steps.map((item, index) => {
-
-            const active =
-              step === item.number;
-
-            const completed =
-              step > item.number;
-
-            return (
-              <div
-                key={item.number}
-                className="flex min-w-0 flex-1 items-center"
+    );
+  if (loadError)
+    return (
+      <div className={styles.error} role="alert">
+        {loadError}
+        <button type="button" onClick={() => window.location.reload()}>
+          Reintentar
+        </button>
+      </div>
+    );
+  return (
+    <section className={styles.workspace}>
+      <header className={styles.intro}>
+        <span className={styles.kicker}>
+          <CheckCircle2 size={13} /> Programa confirmado · Objetivos y temas
+          conservados
+        </span>
+        <h2>
+          {selected.length ? (
+            <>
+              Dale vida a <em>tu materia.</em>
+            </>
+          ) : (
+            <>
+              ¿Con qué vas <em>a enseñar?</em>
+            </>
+          )}
+        </h2>
+        <p>
+          {selected.length
+            ? "Añade tus recursos. Los archivos se procesan y se guardan al quedar asignados; tú sólo revisas lo que necesita atención."
+            : "Elige uno, dos o los tres tipos de material. Tu espacio se prepara al seleccionarlos, sin pasos intermedios."}
+        </p>
+      </header>
+      {(!started || extra) && (
+        <div className={styles.choices} aria-label="Tipos de material">
+          {kinds
+            .filter((k) => !started || !selected.includes(k.id))
+            .map((k) => (
+              <label
+                key={k.id}
+                className={styles.choice}
+                data-selected={selected.includes(k.id)}
               >
-
-                <div className="flex min-w-0 items-center gap-3">
-
-                  <div
-                    className={`
-                      flex h-10 w-10 shrink-0 items-center justify-center
-                      rounded-xl text-sm font-bold transition-all
-                      ${
-                        active
-                          ? "bg-[#4A1115] text-[#FFFDF8] shadow-lg shadow-[#4A1115]/20"
-                          : completed
-                          ? "bg-[#E8AFC0]/40 text-[#4A1115]"
-                          : "border border-[#4A1115]/10 bg-[#F7F1E7] text-[#687584]"
-                      }
-                    `}
+                <input
+                  aria-label={k.label}
+                  type="checkbox"
+                  checked={selected.includes(k.id)}
+                  disabled={busy}
+                  onChange={() => toggle(k.id)}
+                />
+                <k.icon size={26} strokeWidth={1.3} />
+                <strong>{k.label}</strong>
+                <span>{k.description}</span>
+                <small>
+                  {selected.includes(k.id) ? "Seleccionado" : "Elegir"}
+                  <Check size={13} />
+                </small>
+              </label>
+            ))}
+        </div>
+      )}
+      {selected.length > 0 && (
+        <>
+          <div className={styles.toolbar}>
+            <div className={styles.tabs} aria-label="Material seleccionado">
+              {selected.map((kind) => (
+                <button
+                  type="button"
+                  key={kind}
+                  aria-pressed={active === kind}
+                  disabled={busy}
+                  onClick={() => {
+                    setActive(kind);
+                    setFilter("ALL");
+                    setError("");
+                  }}
+                >
+                  {kinds.find((k) => k.id === kind)!.label}
+                  <span>{rows.filter((r) => r.kind === kind).length}</span>
+                </button>
+              ))}
+            </div>
+            {started &&
+              selected.some(
+                (kind) => !rows.some((row) => row.kind === kind),
+              ) && (
+                <div className={styles.optionalTypes}>
+                  {selected
+                    .filter((kind) => !rows.some((row) => row.kind === kind))
+                    .map((kind) => (
+                      <button
+                        key={kind}
+                        type="button"
+                        disabled={busy}
+                        onClick={() => toggle(kind)}
+                      >
+                        No usar{" "}
+                        {kinds.find((k) => k.id === kind)!.label.toLowerCase()}{" "}
+                        <X size={11} />
+                      </button>
+                    ))}
+                </div>
+              )}
+            {started && selected.length < 3 && (
+              <button
+                type="button"
+                className={styles.extra}
+                aria-expanded={extra}
+                disabled={busy}
+                onClick={() => setExtra(!extra)}
+              >
+                <Plus size={14} /> Agregar material extra
+              </button>
+            )}
+          </div>
+          {notice && (
+            <p className={styles.notice} role="status">
+              {notice}
+            </p>
+          )}
+          {error && (
+            <p className={styles.error} role="alert">
+              {error}
+            </p>
+          )}
+          <div className={styles.workArea}>
+            <div className={styles.mainPanel}>
+              {active === "FILE" ? (
+                <>
+                  <div className={styles.panelHeading}>
+                    <div>
+                      <h3>Tus archivos</h3>
+                      <p>
+                        {filesCount} de {topics.length} archivos · Uno por tema
+                      </p>
+                    </div>
+                    <span className={styles.counter}>
+                      {filesCount}/{topics.length}
+                    </span>
+                  </div>
+                  <label
+                    className={styles.dropzone}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (!busy && filesCount < topics.length)
+                        addFiles(Array.from(e.dataTransfer.files));
+                    }}
                   >
-                    {completed ? (
-                      <Check className="h-4 w-4" />
+                    <FileUp size={32} strokeWidth={1.3} />
+                    <strong>Arrastra tus archivos o selecciónalos</strong>
+                    <span>
+                      Se procesan uno a uno. Puedes elegir todos los que falten.
+                    </span>
+                    <input
+                      aria-label="Seleccionar archivos"
+                      type="file"
+                      multiple
+                      accept=".pdf,.docx,.pptx,.xlsx,.jpg,.jpeg,.png,.webp,.mp3,.wav,.ogg,.mp4,.webm"
+                      disabled={busy || filesCount >= topics.length}
+                      onChange={(e) => {
+                        addFiles(Array.from(e.target.files ?? []));
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <details className={styles.tips}>
+                    <summary>Cómo mejorar la asignación automática</summary>
+                    <ul>
+                      <li>
+                        Un archivo por tema, con un nombre claro:{" "}
+                        <strong>1.1 Fundamentos.pdf</strong>.
+                      </li>
+                      <li>
+                        Usa PDF con texto seleccionable; evita documentos
+                        escaneados y archivos que mezclen muchos temas.
+                      </li>
+                      <li>
+                        Comprime imágenes y divide documentos grandes. Máximo 20
+                        MB por archivo; cuota total de 500 MB por cuenta.
+                      </li>
+                      <li>
+                        Las imágenes, audios y documentos sin texto legible
+                        pueden requerir asignación manual.
+                      </li>
+                    </ul>
+                  </details>
+                </>
+              ) : (
+                <>
+                  <div className={styles.panelHeading}>
+                    <div>
+                      <h3>
+                        {active === "VIDEO"
+                          ? "Añade un video"
+                          : "Añade un enlace"}
+                      </h3>
+                      <p>Guarda su dirección y elige dónde se utilizará.</p>
+                    </div>
+                    {active === "VIDEO" ? (
+                      <Video size={22} />
                     ) : (
-                      item.number
+                      <Link2 size={22} />
                     )}
                   </div>
-
-                  <div className="hidden min-w-0 sm:block">
-
-                    <p
-                      className={`
-                        text-sm font-semibold
-                        ${
-                          active
-                            ? "text-[#211719]"
-                            : "text-[#687584]"
+                  <form className={styles.externalForm} onSubmit={addExternal}>
+                    <label>
+                      Título
+                      <input
+                        required
+                        maxLength={250}
+                        disabled={externalBusy}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder={
+                          active === "VIDEO"
+                            ? "Ej. Introducción al aprendizaje"
+                            : "Ej. Lectura complementaria"
                         }
-                      `}
+                      />
+                    </label>
+                    <label>
+                      {active === "VIDEO"
+                        ? "Dirección del video"
+                        : "Dirección del enlace"}
+                      <input
+                        type="url"
+                        required
+                        maxLength={2000}
+                        disabled={externalBusy}
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="https://…"
+                      />
+                    </label>
+                    <div>
+                      <label htmlFor="new-resource-topic">Tema</label>
+                      <select
+                        id="new-resource-topic"
+                        required
+                        disabled={externalBusy}
+                        value={topic}
+                        onChange={(e) => setTopic(e.target.value)}
+                      >
+                        {options()}
+                      </select>
+                    </div>
+                    <button
+                      className={styles.primary}
+                      disabled={externalBusy}
+                      type="submit"
                     >
-                      {item.title}
-                    </p>
-
-                    <p className="mt-0.5 text-[11px] text-[#687584]">
-                      {item.description}
-                    </p>
-
-                  </div>
-
-                </div>
-
-                {index <
-                  steps.length - 1 && (
-                  <div
-                    className={`
-                      mx-3 h-px flex-1 sm:mx-5
-                      ${
-                        step >
-                        item.number
-                          ? "bg-[#4A1115]/40"
-                          : "bg-[#4A1115]/10"
-                      }
-                    `}
-                  />
-                )}
-
-              </div>
-            );
-          })}
-
-        </div>
-      </div>
-
-
-      {/* =====================================================
-          PASO 1 — MATERIAL
-      ====================================================== */}
-
-      {step === 1 && (
-  <div className="mt-8">
-    <AddContent
-  files={files}
-  setFiles={setFiles}
-  initialStructure={initialStructure}
-  onVideosChange={setVideos}
-  onLinksChange={setLinks}
-/>
-  </div>
-)}
-
-
-      {/* =====================================================
-          PASO 2 — ORGANIZACIÓN
-      ====================================================== */}
-
-      {step === 2 && (
-        <div className="mt-8 space-y-6">
-
-          {/* Resumen */}
-
-          <div className="rounded-[2rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-6 shadow-sm sm:p-7">
-
-            <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-
-              <div>
-
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#4A1115]">
-                  Organización automática
-                </p>
-
-                <h3 className="mt-2 text-2xl font-bold tracking-tight text-[#211719]">
-                  Encontramos posibles coincidencias.
-                </h3>
-
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#687584]">
-                  Revisa las sugerencias y cambia
-                  cualquier asignación que necesite
-                  una segunda mirada.
-                </p>
-
-              </div>
-
-              <div className="flex shrink-0 items-center gap-2 rounded-2xl bg-[#F7F1E7] px-4 py-3">
-
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#E8AFC0]/35 text-[#4A1115]">
-                  <FileText className="h-4 w-4" />
-                </div>
-
-                <div>
-
-                  <p className="text-3xl font-bold text-[#211719]">
-  {results.length + videos.length}
-</p>
-
-                  <p className="text-[11px] text-[#687584]">
-                    materiales
-
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-
-              <div className="rounded-2xl bg-[#F7F1E7] p-4">
-
-                <p className="text-3xl font-bold text-[#211719]">
-  {totalMaterials}
-</p>
-
-                <p className="mt-1 text-xs text-[#687584]">
-                  Archivos
-                </p>
-
-              </div>
-
-              <div className="rounded-2xl bg-[#E8AFC0]/20 p-4">
-
-                <p className="text-2xl font-bold text-[#4A1115]">
-                  {
-                    results.filter(
-                      (file) =>
-                        file.confidence ===
-                        "HIGH",
-                    ).length
-                  }
-                </p>
-
-                <p className="mt-1 text-xs text-[#687584]">
-                  Alta confianza
-                </p>
-
-              </div>
-
-              <div className="rounded-2xl bg-[#F7F1E7] p-4">
-
-                <p className="text-2xl font-bold text-[#211719]">
-                  {
-                    results.filter(
-                      (file) =>
-                        file.confidence !==
-                        "HIGH",
-                    ).length
-                  }
-                </p>
-
-                <p className="mt-1 text-xs text-[#687584]">
-                  Para revisar
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          {/* Archivos */}
-
-          <div className="space-y-4">
-
-            {results.map(
-              (file, index) => {
-
-                const currentTopic =
-                  selectedTopics[
-                    file.name
-                  ];
-
-                const isEditing =
-                  editingFile ===
-                  file.name;
-
-                return (
-                  <div
-                    key={`${file.name}-${index}`}
-                    className="overflow-hidden rounded-[2rem] border border-[#4A1115]/10 bg-[#FFFDF8] shadow-sm"
+                      {externalBusy ? (
+                        <>
+                          <LoaderCircle size={15} className="animate-spin" />{" "}
+                          Guardando…
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={15} />
+                          {active === "VIDEO"
+                            ? "Añadir video"
+                            : "Añadir enlace"}
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </>
+              )}
+              <div className={styles.listHeader}>
+                <h4>
+                  {active === "FILE"
+                    ? "Estado de tus archivos"
+                    : "Recursos guardados"}
+                </h4>
+                {active === "FILE" && rows.some((r) => r.kind === "FILE") && (
+                  <select
+                    aria-label="Filtrar archivos"
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
                   >
-
-                    <div className="p-6 sm:p-7">
-
-                      {/* Archivo */}
-
-                      <div className="flex items-start gap-4">
-
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8AFC0]/30 text-[#4A1115]">
-                          <FileText className="h-5 w-5" />
-                        </div>
-
-                        <div className="min-w-0 flex-1">
-
-                          <p className="truncate font-bold text-[#211719]">
-                            {file.name}
-                          </p>
-
-                          <p className="mt-1 text-xs text-[#687584]">
-                            {(
-                              file.size /
-                              1024 /
-                              1024
-                            ).toFixed(2)}{" "}
-                            MB
-                          </p>
-
-                        </div>
-
-                        <div
-                          className={`
-                            flex shrink-0 items-center gap-2
-                            rounded-full px-3 py-1.5
-                            text-[11px] font-semibold
-                            ${
-                              file.confidence ===
-                              "HIGH"
-                                ? "bg-[#E8AFC0]/25 text-[#4A1115]"
-                                : file.confidence ===
-                                  "MEDIUM"
-                                ? "bg-[#F7F1E7] text-[#687584]"
-                                : "bg-[#4A1115]/5 text-[#4A1115]"
-                            }
-                          `}
-                        >
-                          {file.confidence ===
-                          "LOW" ? (
-                            <AlertCircle className="h-3.5 w-3.5" />
+                    <option value="ALL">Todos</option>
+                    <option value="PENDING">Por revisar</option>
+                    <option value="SAVED">Asignados</option>
+                  </select>
+                )}
+              </div>
+              {visible.length === 0 ? (
+                <div className={styles.empty}>
+                  <BookOpen size={27} strokeWidth={1.2} />
+                  <p>
+                    {filter !== "ALL"
+                      ? "No hay archivos en este estado."
+                      : active === "FILE"
+                        ? "Aquí verás cada archivo y el estado de su asignación."
+                        : "Los recursos que añadas aparecerán aquí."}
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.resourceList}>
+                  {visible.map((row) => {
+                    const saving = ["UPLOADING", "QUEUED", "SAVING"].includes(
+                      row.status,
+                    );
+                    const assigned = row.status === "SAVED";
+                    return (
+                      <article className={styles.resource} key={row.key}>
+                        <span className={styles.fileIcon}>
+                          {saving ? (
+                            <LoaderCircle size={19} className="animate-spin" />
+                          ) : assigned ? (
+                            <CheckCircle2 size={20} />
                           ) : (
-                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <AlertCircle size={20} />
                           )}
-
-                          {getConfidenceLabel(
-                            file.confidence,
+                        </span>
+                        <div className={styles.resourceBody}>
+                          <strong>{row.name}</strong>
+                          <span className={styles.status} data-saved={assigned}>
+                            {row.status === "QUEUED"
+                              ? "En cola"
+                              : row.status === "UPLOADING"
+                                ? "Leyendo y buscando su tema…"
+                                : row.status === "SAVING"
+                                  ? "Guardando…"
+                                  : assigned
+                                    ? `Asignado al tema ${row.topicNumber}`
+                                    : row.status === "ERROR"
+                                      ? "No se pudo cargar"
+                                      : "Necesita un tema"}
+                          </span>
+                          {row.error && (
+                            <p className={styles.rowError}>{row.error}</p>
                           )}
-                        </div>
-
-                      </div>
-
-
-                      {/* Tema asignado */}
-
-                      {currentTopic &&
-                      !isEditing ? (
-
-                        <div className="mt-6 rounded-[1.5rem] border border-[#4A1115]/10 bg-[#F7F1E7]/55 p-5">
-
-                          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
-                            <div>
-
-                              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#4A1115]">
-                                Tema asignado
-                              </p>
-
-                              <div className="mt-3 flex items-center gap-3">
-
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#4A1115] text-xs font-bold text-[#FFFDF8]">
-                                  {currentTopic.number}
-                                </div>
-
-                                <div>
-
-                                  <p className="text-sm font-bold text-[#211719]">
-                                    {currentTopic.title}
-                                  </p>
-
-                                  <p className="mt-0.5 text-xs text-[#687584]">
-                                    Sugerido por Aura Atlas
-                                  </p>
-
-                                </div>
-
+                          {row.suggestedTopic && !assigned && !saving && (
+                            <p className={styles.suggestion}>
+                              Sugerencia: {row.suggestedTopic.number} ·{" "}
+                              {row.suggestedTopic.title}
+                            </p>
+                          )}
+                          {((!assigned && row.uploadId) ||
+                            editing === row.key) &&
+                            !saving && (
+                              <div className={styles.assignment}>
+                                <label htmlFor={`assignment-${row.key}`}>
+                                  Asignar tema a {row.name}
+                                </label>
+                                <select
+                                  id={`assignment-${row.key}`}
+                                  value={assigned ? row.topicNumber : ""}
+                                  onChange={(e) =>
+                                    void assign(row, e.target.value)
+                                  }
+                                >
+                                  {options(row)}
+                                </select>
+                                <small>Se guarda al elegir el tema.</small>
                               </div>
-
-                            </div>
-
+                            )}
+                        </div>
+                        <div className={styles.rowActions}>
+                          {assigned && (
                             <button
                               type="button"
                               onClick={() =>
-                                setEditingFile(
-                                  file.name,
-                                )
+                                setEditing(editing === row.key ? null : row.key)
                               }
-                              className="rounded-xl border border-[#4A1115]/10 bg-[#FFFDF8] px-4 py-2 text-sm font-semibold text-[#4A1115] transition-colors hover:bg-[#4A1115] hover:text-[#FFFDF8]"
+                              aria-expanded={editing === row.key}
                             >
                               Cambiar tema
                             </button>
-
-                          </div>
-
+                          )}
+                          {row.status === "ERROR" && row.file && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => {
+                                change(row.key, {
+                                  status: "QUEUED",
+                                  error: undefined,
+                                });
+                                jobs.current.push(row);
+                                void runQueue();
+                              }}
+                            >
+                              Reintentar
+                            </button>
+                          )}
+                          {!assigned && !saving && (
+                            <button
+                              type="button"
+                              aria-label={`Quitar ${row.name}`}
+                              onClick={() => void remove(row)}
+                            >
+                              <X size={15} />
+                            </button>
+                          )}
                         </div>
-
-                      ) : file.candidates
-                          .length > 0 ? (
-
-                        <div className="mt-6 rounded-[1.5rem] border border-[#4A1115]/15 bg-[#E8AFC0]/10 p-5">
-
-                          <p className="text-sm font-bold text-[#211719]">
-                            ¿Dónde pertenece este material?
-                          </p>
-
-                          <p className="mt-1 text-sm text-[#687584]">
-                            Selecciona el tema que
-                            mejor corresponda.
-                          </p>
-
-                          <div className="mt-4 space-y-2">
-
-                            {file.candidates.map(
-                              (candidate) => (
-                                <button
-                                  key={`${candidate.number}-${candidate.title}`}
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedTopics(
-                                      (
-                                        previous,
-                                      ) => ({
-                                        ...previous,
-                                        [file.name]:
-                                          candidate,
-                                      }),
-                                    );
-
-                                    setEditingFile(
-                                      null,
-                                    );
-                                  }}
-                                  className="group flex w-full items-center gap-4 rounded-2xl border border-[#4A1115]/10 bg-[#FFFDF8] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[#4A1115]/25 hover:shadow-md"
-                                >
-
-                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E8AFC0]/25 text-xs font-bold text-[#4A1115]">
-                                    {candidate.number}
-                                  </div>
-
-                                  <div className="min-w-0 flex-1">
-
-                                    <p className="text-sm font-semibold text-[#211719]">
-                                      {candidate.title}
-                                    </p>
-
-                                    <p className="mt-1 text-xs text-[#687584]">
-                                      Coincidencia{" "}
-                                      {Math.round(
-                                        candidate.score *
-                                          100,
-                                      )}
-                                      %
-                                    </p>
-
-                                  </div>
-
-                                  <ArrowRight className="h-4 w-4 text-[#687584] transition-transform group-hover:translate-x-1 group-hover:text-[#4A1115]" />
-
-                                </button>
-                              ),
-                            )}
-
-                          </div>
-
-                        </div>
-
-                      ) : (
-
-                        <div className="mt-6 rounded-[1.5rem] border border-[#4A1115]/15 bg-[#4A1115]/5 p-5">
-
-                          <div className="flex items-start gap-3">
-
-                            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#4A1115]" />
-
-                            <div>
-
-                              <p className="font-semibold text-[#211719]">
-                                No encontramos una coincidencia clara
-                              </p>
-
-                              <p className="mt-1 text-sm leading-6 text-[#687584]">
-                                Este archivo necesita
-                                que selecciones
-                                manualmente un tema.
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-
-                      {/* Otras coincidencias */}
-
-                      {file.candidates.length >
-                        1 && (
-                        <details className="group mt-4">
-
-                          <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold text-[#687584] transition-colors hover:text-[#4A1115]">
-
-                            Ver otras coincidencias
-
-                            <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
-
-                          </summary>
-
-                          <div className="mt-3 space-y-2">
-
-                            {file.candidates
-                              .slice(1)
-                              .map(
-                                (
-                                  candidate,
-                                ) => (
-                                  <div
-                                    key={`${candidate.number}-${candidate.title}`}
-                                    className="flex items-center justify-between rounded-xl border border-[#4A1115]/10 bg-[#F7F1E7]/40 p-4"
-                                  >
-
-                                    <div className="flex items-center gap-3">
-
-                                      <span className="text-xs font-bold text-[#4A1115]">
-                                        {
-                                          candidate.number
-                                        }
-                                      </span>
-
-                                      <span className="text-sm text-[#211719]">
-                                        {
-                                          candidate.title
-                                        }
-                                      </span>
-
-                                    </div>
-
-                                    <span className="text-xs text-[#687584]">
-                                      {Math.round(
-                                        candidate.score *
-                                          100,
-                                      )}
-                                      %
-                                    </span>
-
-                                  </div>
-                                ),
-                              )}
-
-                          </div>
-
-                        </details>
-                      )}
-
-                    </div>
-
-                  </div>
-                );
-              },
-            )}
-
-          </div>
-
-        </div>
-      )}
-
-
-      {/* =====================================================
-          PASO 3 — REVISIÓN
-      ====================================================== */}
-
-      {step === 3 && (
-        <div className="mt-8 space-y-6">
-
-          <div className="rounded-[2rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-6 shadow-sm sm:p-8">
-
-            <div className="flex items-start gap-4">
-
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8AFC0]/30 text-[#4A1115]">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-
-              <div>
-
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#4A1115]">
-                  Último paso
-                </p>
-
-                <h3 className="mt-2 text-2xl font-bold tracking-tight text-[#211719]">
-                  Todo listo para guardar.
-                </h3>
-
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#687584]">
-                  Revisa que cada material esté
-                  asociado al tema correcto antes
-                  de incorporarlo a tu hipertexto.
-                </p>
-
-              </div>
-
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-
-
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
-
-              <div className="rounded-2xl bg-[#F7F1E7] p-5">
-
-                <p className="text-3xl font-bold text-[#211719]">
-                  {results.length}
-                </p>
-
-                <p className="mt-1 text-xs text-[#687584]">
-                  Materiales preparados
-                </p>
-
+            <aside className={styles.summary}>
+              <span className={styles.kicker}>TU BIBLIOTECA</span>
+              <div className={styles.summaryArt}>
+                <BookOpen size={42} strokeWidth={1.1} />
               </div>
-
-              <div
-                className={`
-                  rounded-2xl p-5
-                  ${
-                    allAssigned
-                      ? "bg-[#E8AFC0]/20"
-                      : "bg-[#4A1115]/5"
-                  }
-                `}
+              <h3>{ready ? "Tu material está listo" : "Cada recurso suma."}</h3>
+              <p>
+                {ready
+                  ? "Ya puedes crear y dar forma al hipertexto de tu materia."
+                  : "Tu material se conserva al quedar asignado. Puedes volver y enriquecerlo después."}
+              </p>
+              <dl>
+                <div>
+                  <dt>Recursos guardados</dt>
+                  <dd>{saved.length}</dd>
+                </div>
+                <div>
+                  <dt>Por revisar o cargar</dt>
+                  <dd>{pending.length}</dd>
+                </div>
+                <div>
+                  <dt>Temas con material</dt>
+                  <dd>
+                    {covered}/{topics.length}
+                  </dd>
+                </div>
+              </dl>
+              {rows.some((row) => row.uploadId && row.status !== "SAVED") && (
+                <p className={styles.hint}>
+                  Asigna los archivos pendientes antes de una hora para
+                  conservarlos.
+                </p>
+              )}
+              {!selectedReady && (
+                <p className={styles.hint}>
+                  Añade al menos un recurso de cada tipo que elegiste, o
+                  desmarca el tipo que no usarás.
+                </p>
+              )}
+              <button
+                className={styles.primary}
+                type="button"
+                disabled={!ready || dirty}
+                onClick={() => {
+                  onReload();
+                  onGoToHypertext();
+                }}
               >
-
-                <p
-  className={`
-    text-3xl font-bold
-    ${
-      allAssigned
-        ? "text-[#4A1115]"
-        : "text-[#211719]"
-    }
-  `}
->
-  {assignedCount + videos.length + links.length}
-</p>
-
-                <p className="mt-1 text-xs text-[#687584]">
-                  Con tema asignado
-                </p>
-
-              </div>
-
-            </div>
-
+                Crear y diseñar hipertexto <ArrowRight size={15} />
+              </button>
+              <small>Puedes seguir añadiendo material después.</small>
+            </aside>
           </div>
-
-
-          {/* Resumen de archivos */}
-
-          <div className="space-y-3">
-
-            {results.map(
-              (file, index) => {
-
-                const topic =
-                  selectedTopics[
-                    file.name
-                  ];
-
-                return (
-                  <div
-                    key={`${file.name}-${index}`}
-                    className="rounded-[1.5rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-5 shadow-sm"
-                  >
-
-                    <div className="flex items-center gap-4">
-
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E8AFC0]/25 text-[#4A1115]">
-                        <FileText className="h-5 w-5" />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-
-                        <p className="truncate text-sm font-bold text-[#211719]">
-                          {file.name}
-                        </p>
-
-                        <p className="mt-1 text-xs text-[#687584]">
-                          {(
-                            file.size /
-                            1024 /
-                            1024
-                          ).toFixed(2)}{" "}
-                          MB
-                        </p>
-
-                      </div>
-
-                      <CheckCircle2 className="h-5 w-5 shrink-0 text-[#4A1115]" />
-
-                    </div>
-
-
-                    {topic ? (
-
-                      <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#F7F1E7] p-3.5">
-
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#4A1115] text-[10px] font-bold text-[#FFFDF8]">
-                          {topic.number}
-                        </div>
-
-                        <div>
-
-                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#4A1115]">
-                            Tema asignado
-                          </p>
-
-                          <p className="mt-0.5 text-sm font-semibold text-[#211719]">
-                            {topic.title}
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    ) : (
-
-                      <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#4A1115]/5 p-3.5">
-
-                        <AlertCircle className="h-5 w-5 text-[#4A1115]" />
-
-                        <div>
-
-                          <p className="text-sm font-semibold text-[#211719]">
-                            Sin tema asignado
-                          </p>
-
-                          <p className="mt-0.5 text-xs text-[#687584]">
-                            Regresa al paso anterior
-                            para seleccionar uno.
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    )}
-
-                  </div>
-                );
-              },
-            )}
-
-            {videos.map((video) => {
-  const videoTopic = initialStructure &&
-    typeof initialStructure === "object"
-      ? (
-          initialStructure as {
-            units?: {
-              number: number;
-              title: string;
-              topics?: {
-                number: string;
-                title: string;
-              }[];
-            }[];
-          }
-        ).units
-          ?.flatMap((unit) => unit.topics ?? [])
-          .find(
-            (topic) =>
-              topic.number === video.topicNumber,
-          )
-      : null;
-
-  return (
-    <div
-      key={video.id}
-      className="rounded-[1.5rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-5 shadow-sm"
-    >
-      <div className="flex items-center gap-4">
-
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E8AFC0]/25 text-[#4A1115]">
-          <Video className="h-5 w-5" />
-        </div>
-
-        <div className="min-w-0 flex-1">
-
-          <p className="truncate text-sm font-bold text-[#211719]">
-            {video.name}
-          </p>
-
-          <p className="mt-1 truncate text-xs text-[#687584]">
-            {video.url}
-          </p>
-
-        </div>
-
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-[#4A1115]" />
-
-      </div>
-
-      <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#F7F1E7] p-3.5">
-
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#4A1115] text-[10px] font-bold text-[#FFFDF8]">
-          {video.topicNumber}
-        </div>
-
-        <div>
-
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#4A1115]">
-            Tema asignado
-          </p>
-
-          <p className="mt-0.5 text-sm font-semibold text-[#211719]">
-            {videoTopic?.title ?? "Tema seleccionado"}
-          </p>
-
-          <p className="mt-1 text-xs text-[#687584]">
-            Asignado por el docente
-          </p>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
-})}
-
-{links.map((link) => {
-  const linkTopic =
-    initialStructure &&
-    typeof initialStructure === "object"
-      ? (
-          initialStructure as {
-            units?: {
-              number: number;
-              title: string;
-              topics?: {
-                number: string;
-                title: string;
-              }[];
-            }[];
-          }
-        ).units
-          ?.flatMap((unit) => unit.topics ?? [])
-          .find(
-            (topic) =>
-              topic.number === link.topicNumber,
-          )
-      : null;
-
-  return (
-    <div
-      key={link.id}
-      className="rounded-[1.5rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-5 shadow-sm"
-    >
-      <div className="flex items-center gap-4">
-
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#E8AFC0]/25 text-[#4A1115]">
-          <Link2 className="h-5 w-5" />
-        </div>
-
-        <div className="min-w-0 flex-1">
-
-          <p className="truncate text-sm font-bold text-[#211719]">
-            {link.name}
-          </p>
-
-          <p className="mt-1 truncate text-xs text-[#687584]">
-            {link.url}
-          </p>
-
-        </div>
-
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-[#4A1115]" />
-
-      </div>
-
-      <div className="mt-4 flex items-center gap-3 rounded-xl bg-[#F7F1E7] p-3.5">
-
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#4A1115] text-[10px] font-bold text-[#FFFDF8]">
-          {link.topicNumber}
-        </div>
-
-        <div>
-
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#4A1115]">
-            Tema asignado
-          </p>
-
-          <p className="mt-0.5 text-sm font-semibold text-[#211719]">
-            {linkTopic?.title ?? "Tema seleccionado"}
-          </p>
-
-          <p className="mt-1 text-xs text-[#687584]">
-            Asignado por el docente
-          </p>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
-})}
-
-          </div>
-
-        </div>
+        </>
       )}
-
-
-      {/* =====================================================
-          NAVEGACIÓN
-      ====================================================== */}
-
-      <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleBack}
-          className="h-11 rounded-xl border-[#4A1115]/15 bg-[#FFFDF8] px-5 text-[#4A1115] hover:bg-[#F7F1E7]"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-
-          {step === 1
-            ? "Cancelar"
-            : "Atrás"}
-        </Button>
-
-
-        {step < 3 ? (
-
-          <Button
-  type="button"
-  onClick={handleNext}
-  disabled={
-    uploading ||
-    (step === 1 &&
-      files.length === 0 &&
-      videos.length === 0 &&
-      links.length === 0)
-  }
-  className="h-11 rounded-xl bg-[#4A1115] px-6 font-semibold text-[#FFFDF8] shadow-lg shadow-[#4A1115]/15 hover:bg-[#5D171D]"
->
-  {uploading ? (
-    <>
-      <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-[#FFFDF8]/30 border-t-[#FFFDF8]" />
-      Analizando materiales...
-    </>
-  ) : (
-    <>
-      Continuar
-      <ArrowRight className="ml-2 h-4 w-4" />
-    </>
-  )}
-</Button>
-
-        ) : (
-
-          <Button
-            type="button"
-            onClick={handleNext}
-            disabled={
-              saving ||
-              !allAssigned
-            }
-            className="h-11 rounded-xl bg-[#4A1115] px-6 font-semibold text-[#FFFDF8] shadow-lg shadow-[#4A1115]/15 hover:bg-[#5D171D]"
-          >
-            {saving ? (
-              <>
-                <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-[#FFFDF8]/30 border-t-[#FFFDF8]" />
-                Guardando...
-              </>
-            ) : (
-              <>
-                Guardar contenido
-
-                <Check className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </Button>
-
-        )}
-
-      </div>
-
     </section>
   );
 }

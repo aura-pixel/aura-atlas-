@@ -1,0 +1,1360 @@
+.landing {
+  --wine: #4a1115;
+  --cream: #f7f1e7;
+  --paper: #fffdf8;
+  --pink: #e8afc0;
+  --blue: #8b9aaa;
+  color: var(--wine);
+  background: var(--cream);
+  overflow: clip;
+  -webkit-font-smoothing: antialiased;
+}
+.landing * {
+  box-sizing: border-box;
+}
+.landing a {
+  text-decoration: none;
+}
+.landing a:focus-visible,
+.landing button:focus-visible {
+  outline: 2px solid var(--wine);
+  outline-offset: 6px;
+}
+.landing section {
+  scroll-margin-top: 110px;
+}
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 20px 36px;
+}
+.navbar {
+  max-width: 1320px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 15px 24px;
+  background: #fffdf8ed;
+  border: 1px solid #4a11151a;
+  border-radius: 18px;
+  box-shadow: 0 5px 30px #4a111506;
+  backdrop-filter: blur(16px);
+}
+.brand {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  font-size: 22px;
+  letter-spacing: -0.8px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.brand img {
+  object-fit: contain;
+}
+.brand small {
+  display: block;
+  margin-top: 2px;
+  font-size: 7px;
+  font-weight: 500;
+  letter-spacing: 1.9px;
+}
+.desktopNav {
+  display: flex;
+  gap: 32px;
+  font-size: 12px;
+}
+.desktopNav a,
+.loginLink {
+  transition: color 0.2s;
+}
+.desktopNav a:hover,
+.loginLink:hover {
+  color: #9d4c64;
+}
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  font-size: 12px;
+}
+.navCta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 18px;
+  border: 1px solid #4a111533;
+  border-radius: 9px;
+  transition: background 0.2s;
+}
+.navCta:hover {
+  background: var(--pink);
+}
+.menuButton {
+  display: none;
+  border: 0;
+  background: none;
+  padding: 7px;
+  cursor: pointer;
+}
+.mobileNav {
+  display: none;
+}
+.skipLink {
+  position: absolute;
+  top: -100px;
+  background: var(--wine);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+.skipLink:focus {
+  top: 20px;
+}
+.hero {
+  position: relative;
+  padding: 155px 48px 100px;
+  background-image: radial-gradient(#4a11150b 0.7px, transparent 0.7px);
+  background-size: 7px 7px;
+}
+.heroInner {
+  max-width: 1240px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1.03fr;
+  align-items: center;
+  min-height: 580px;
+}
+.heroCopy {
+  position: relative;
+  z-index: 2;
+  padding: 25px 0 45px;
+  animation: enter 0.9s both;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  line-height: 1.7;
+}
+.eyebrow > span {
+  width: 6px;
+  height: 6px;
+  border-radius: 100%;
+  background: var(--wine);
+  box-shadow: 0 0 0 4px #e8afc03b;
+}
+.landing h1 {
+  font-size: clamp(48px, 4.6vw, 68px);
+  line-height: 1.12;
+  letter-spacing: -3px;
+  font-weight: 500;
+  max-width: 650px;
+  margin: 24px 0;
+}
+.landing em {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 400;
+}
+.landing h1 em {
+  position: relative;
+  display: inline-block;
+  font-size: 1.15em;
+}
+.landing h1 em::after {
+  content: "";
+  position: absolute;
+  height: 8px;
+  border: solid var(--pink);
+  border-width: 0 0 3px;
+  border-radius: 50%;
+  bottom: 0;
+  left: 0;
+  right: -10px;
+  transform: rotate(-3deg);
+}
+.heroDescription {
+  max-width: 420px;
+  font-size: 15px;
+  color: #6e6160;
+  line-height: 1.9;
+  margin: 26px 0 29px;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.primaryButton,
+.lightButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  padding: 17px 23px;
+  border-radius: 9px;
+  background: var(--wine);
+  color: var(--paper);
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 5px 10px #4a11150a;
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s,
+    background 0.25s;
+}
+.primaryButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 22px #4a11151f;
+  background: #65252c;
+}
+.primaryButton svg,
+.lightButton svg {
+  transition: transform 0.25s;
+}
+.primaryButton:hover svg,
+.lightButton:hover svg {
+  transform: translate(2px, -2px);
+}
+.textButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #4a11152a;
+}
+.heroNote {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 38px;
+  font-size: 10px;
+  color: #766767;
+  line-height: 1.7;
+}
+.heroNote strong {
+  color: var(--wine);
+  font-weight: 500;
+}
+.noteIcon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border: 1px solid #4a111526;
+  border-radius: 50%;
+}
+.gardenWorld {
+  position: relative;
+  width: 100%;
+  animation: enter 1s 0.15s both;
+}
+.gardenArt {
+  position: relative;
+  width: 100%;
+}
+.gardenSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.gardenLabel {
+  position: absolute;
+  top: 0;
+  left: 17%;
+  font-size: 7px;
+  letter-spacing: 1.9px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gardenLabel span {
+  width: 5px;
+  height: 5px;
+  background: var(--blue);
+  border-radius: 50%;
+}
+.gardenCaption {
+  position: absolute;
+  bottom: 0;
+  left: 22%;
+  transform: rotate(-5deg);
+  font-family: "DM Serif Display", Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  color: #7e5c5d;
+}
+.floatingCard {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 15px 17px;
+  border: 1px solid #4a11151c;
+  border-radius: 12px;
+  background: #fffdf8ed;
+  box-shadow: 0 10px 40px #4a111509;
+  animation: drift 7s ease-in-out infinite;
+}
+.floatingCard strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+}
+.floatingCard small {
+  display: block;
+  font-size: 7px;
+  letter-spacing: 1px;
+  margin: 4px 0;
+  color: #7a686b;
+}
+.subjectCard {
+  top: 19%;
+  left: -2%;
+  transform: rotate(-5deg);
+}
+.resourceCard {
+  right: -2%;
+  bottom: 12%;
+  animation-delay: -3s;
+}
+.resourceCard small {
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.cardIcon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 39px;
+  border-radius: 8px;
+  background: #e8afc040;
+}
+.resourceCard .cardIcon {
+  background: #8b9aaa26;
+}
+.cardDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+  margin-left: 6px;
+}
+.butterflyOne,
+.butterflyTwo {
+  position: absolute;
+  width: 60px;
+  top: 15%;
+  right: 16%;
+  animation: fly 9s ease-in-out infinite;
+}
+.butterflyTwo {
+  top: 45%;
+  left: 9%;
+  width: 38px;
+  animation-delay: -4s;
+}
+.wings {
+  transform-origin: 40px 35px;
+  animation: flutter 1.8s ease-in-out infinite;
+}
+.sway {
+  transform-origin: 0 0;
+  animation: sway 6s ease-in-out infinite;
+}
+.plantBack {
+  transform-origin: 350px 380px;
+  animation: sway 8s ease-in-out -2s infinite;
+}
+.drawPath {
+  animation: dash 25s linear infinite;
+}
+.heroBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1240px;
+  margin: 40px auto 0;
+  font-size: 8px;
+  letter-spacing: 1.6px;
+}
+.heroBottom a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.heroBottom > span {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.scrollCircle {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #4a111526;
+  border-radius: 50%;
+}
+.smallStar {
+  font-size: 30px;
+  color: #a66a7a;
+  display: inline-block;
+  animation: rotate 40s linear infinite;
+}
+.heroWave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  pointer-events: none;
+}
+.meadow {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+.features {
+  background: #eee7df;
+  padding: 70px 48px 0;
+}
+.sectionInner {
+  max-width: 1240px;
+  margin: auto;
+}
+.sectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 50px;
+  margin-bottom: 45px;
+}
+.landing h2 {
+  font-size: clamp(32px, 3vw, 44px);
+  line-height: 1.22;
+  letter-spacing: -1.6px;
+  font-weight: 500;
+  margin: 20px 0 0;
+}
+.sectionHeading > p {
+  width: 300px;
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #6e6160;
+  margin-bottom: 4px;
+}
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.featureCard {
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid #4a11151a;
+  transition:
+    transform 0.4s,
+    box-shadow 0.4s;
+}
+.featureCard:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 15px 35px #4a11150c;
+}
+.organizeCard {
+  background: var(--paper);
+}
+.createCard {
+  background: #edc9d1;
+}
+.connectCard {
+  background: #c7cdd0;
+}
+.featureTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.featureTop > span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #4a111526;
+  border-radius: 10px;
+}
+.featureTop small {
+  font-size: 8px;
+  letter-spacing: 1.3px;
+}
+.landing h3 {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.6px;
+}
+.featureCard > p {
+  margin: 13px 0 27px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: #625458;
+}
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid #4a111526;
+  font-size: 8px;
+  letter-spacing: 1.7px;
+}
+.miniTree,
+.resourceStack,
+.nodeMap {
+  height: 175px;
+  margin: 15px 0 18px;
+}
+.miniTree {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.miniTree > span,
+.miniTree div > span {
+  padding: 9px 16px;
+  border-radius: 7px;
+  background: var(--cream);
+  border: 1px solid #4a11151f;
+  font-size: 10px;
+}
+.miniTree > span {
+  color: var(--paper);
+  background: var(--wine);
+}
+.miniTree i {
+  height: 20px;
+  border-left: 1px solid #4a111538;
+}
+.miniTree > div {
+  display: flex;
+  gap: 22px;
+  position: relative;
+}
+.miniTree > div::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 25%;
+  right: 25%;
+  border-top: 1px solid #4a111538;
+}
+.miniTree .treeLeaves {
+  gap: 13px;
+  margin-top: 18px;
+}
+.treeLeaves > span {
+  width: 34px;
+  height: 13px;
+  padding: 0 !important;
+  background: #e8afc052 !important;
+}
+.resourceStack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.resourceStack > span {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 10px;
+  width: 225px;
+  max-width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #4a11151f;
+  background: #fffdf8cc;
+  border-radius: 8px;
+  transform: rotate(-5deg);
+  box-shadow: 0 3px 6px #4a111505;
+  transition: transform 0.4s;
+}
+.resourceStack > span:nth-child(2) {
+  transform: rotate(3deg);
+}
+.resourceStack > span:nth-child(3) {
+  transform: rotate(-2deg);
+}
+.featureCard:hover .resourceStack > span {
+  transform: rotate(0);
+}
+.nodeMap {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.nodeMap > svg:first-child {
+  width: 100%;
+  height: 150px;
+  color: #4a111559;
+  overflow: visible;
+}
+.nodeMap circle {
+  fill: #fffdf899;
+  stroke: #4a111566;
+  stroke-width: 1;
+}
+.nodeMap circle:last-child {
+  fill: var(--wine);
+}
+.nodeMap > svg:last-child {
+  position: absolute;
+  top: calc(50% - 9px);
+  left: calc(49.3% - 11px);
+  color: var(--paper);
+}
+.interlude {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 65px 0;
+}
+.interlude > span {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  line-height: 1.4;
+}
+.interlude > svg {
+  width: 180px;
+  color: #916069;
+}
+.interlude > p {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #6e6160;
+}
+.howSection {
+  padding: 100px 48px 140px;
+  position: relative;
+}
+.howInner {
+  max-width: 1140px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 110px;
+  align-items: center;
+}
+.sproutBadge {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 60px;
+  background: #e8afc042;
+  border-radius: 48% 52% 62% 38%;
+  margin-bottom: 25px;
+}
+.howIntro > p:not(.eyebrow) {
+  font-size: 13px;
+  line-height: 1.9;
+  max-width: 360px;
+  color: #6e6160;
+  margin: 23px 0 28px;
+}
+.steps {
+  list-style: none;
+  padding: 0;
+}
+.steps li {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 25px;
+  padding: 28px 0;
+}
+.steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 75px;
+  left: 23px;
+  bottom: -28px;
+  border-left: 1px dashed #4a111538;
+}
+.stepNumber {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 47px;
+  height: 47px;
+  border: 1px solid #4a111533;
+  border-radius: 50%;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 19px;
+}
+.steps li:nth-child(2) .stepNumber {
+  background: #e8afc04a;
+}
+.steps li:nth-child(3) .stepNumber {
+  background: #8b9aaa33;
+}
+.steps h3 {
+  font-size: 18px;
+  margin: 8px 0 10px;
+}
+.steps p {
+  font-size: 12px;
+  color: #6e6160;
+  line-height: 1.9;
+  max-width: 340px;
+}
+.footer {
+  position: relative;
+  background: var(--wine);
+  color: var(--paper);
+}
+.footerGarden {
+  position: absolute;
+  height: 105px;
+  top: -104px;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.footerGarden svg {
+  width: 100%;
+  height: 100%;
+}
+.footerInner {
+  max-width: 1240px;
+  padding: 50px 0 25px;
+  margin: auto;
+}
+.footerCta {
+  position: relative;
+  text-align: center;
+  padding: 0 0 65px;
+}
+.footerCta .eyebrow {
+  justify-content: center;
+  color: #e8afc0;
+  font-size: 8px;
+}
+.footerCta h2 {
+  font-size: clamp(40px, 4.5vw, 64px);
+  margin: 20px 0 28px;
+}
+.footerCta h2 em {
+  color: var(--pink);
+}
+.lightButton {
+  background: var(--paper);
+  color: var(--wine);
+}
+.lightButton:hover {
+  background: var(--pink);
+  transform: translateY(-3px);
+}
+.footerButterfly {
+  position: absolute;
+  width: 80px;
+  top: 40px;
+  right: 15%;
+  transform: rotate(-15deg);
+  animation: fly 9s ease-in-out -3s infinite;
+}
+.footerBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 25px;
+  border-top: 1px solid #fffdf826;
+  font-size: 10px;
+  color: #fffdf8a3;
+}
+.footerBrand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--paper);
+  font-size: 16px;
+  font-weight: 500;
+}
+.footerBrand img {
+  padding: 3px;
+  background: var(--paper);
+  border-radius: 8px;
+}
+.footerBottom > a:last-child {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.footer a:focus-visible {
+  outline-color: var(--pink);
+}
+.landing [data-animate] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.8s,
+    transform 0.8s;
+}
+.landing [data-visible] {
+  opacity: 1;
+  transform: translateY(0);
+}
+.featureGrid > :nth-child(2) {
+  transition-delay: 0.08s;
+}
+.featureGrid > :nth-child(3) {
+  transition-delay: 0.16s;
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -9px;
+  }
+}
+@keyframes fly {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -10deg;
+  }
+  50% {
+    translate: 14px -18px;
+    rotate: 8deg;
+  }
+}
+@keyframes flutter {
+  0%,
+  100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(0.65);
+  }
+}
+@keyframes sway {
+  0%,
+  100% {
+    rotate: -2deg;
+  }
+  50% {
+    rotate: 2deg;
+  }
+}
+@keyframes dash {
+  to {
+    stroke-dashoffset: -200;
+  }
+}
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (min-width: 1600px) {
+  .hero {
+    padding-top: 190px;
+  }
+  .heroInner {
+    min-height: 650px;
+  }
+}
+@media (max-width: 1100px) {
+  .desktopNav {
+    gap: 18px;
+  }
+  .navActions {
+    gap: 16px;
+  }
+  .hero {
+    padding-inline: 36px;
+  }
+  .landing h1 {
+    font-size: 52px;
+    letter-spacing: -2.4px;
+  }
+  .heroInner {
+    min-height: 520px;
+  }
+  .gardenLabel {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .gardenCaption {
+    font-size: 14px;
+  }
+  .floatingCard {
+    padding: 10px;
+    gap: 8px;
+  }
+  .floatingCard strong {
+    font-size: 10px;
+  }
+  .floatingCard small {
+    font-size: 6px;
+  }
+  .resourceCard small {
+    font-size: 8px;
+  }
+  .sectionHeading {
+    gap: 30px;
+  }
+  .sectionHeading > p {
+    width: 260px;
+  }
+  .featureCard {
+    padding: 22px;
+  }
+  .featureTop small {
+    font-size: 6.5px;
+  }
+  .howInner {
+    gap: 60px;
+  }
+  .footerInner {
+    margin-inline: 48px;
+  }
+}
+@media (max-width: 800px) {
+  .header {
+    padding: 14px 20px;
+  }
+  .navbar {
+    padding: 12px 16px;
+  }
+  .desktopNav {
+    display: none;
+  }
+  .menuButton {
+    display: block;
+  }
+  .loginLink {
+    display: none;
+  }
+  .mobileNav {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 10px 20px;
+    margin: 8px auto 0;
+    background: var(--paper);
+    border: 1px solid #4a11151f;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px #4a111512;
+  }
+  .mobileNav a {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    font-size: 13px;
+  }
+  .hero {
+    padding: 140px 30px 90px;
+  }
+  .heroInner {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .heroCopy {
+    max-width: 570px;
+    padding-bottom: 0;
+  }
+  .landing h1 {
+    font-size: 62px;
+  }
+  .heroDescription {
+    max-width: 460px;
+  }
+  .gardenWorld {
+    max-width: 580px;
+    margin: 45px auto 15px;
+  }
+  .gardenLabel {
+    font-size: 7px;
+  }
+  .gardenCaption {
+    font-size: 17px;
+  }
+  .floatingCard {
+    padding: 14px;
+  }
+  .floatingCard strong {
+    font-size: 12px;
+  }
+  .floatingCard small {
+    font-size: 7px;
+  }
+  .resourceCard small {
+    font-size: 9px;
+  }
+  .heroBottom {
+    margin-top: 35px;
+  }
+  .heroBottom > span {
+    display: none;
+  }
+  .features {
+    padding: 50px 30px 0;
+  }
+  .sectionHeading {
+    display: block;
+  }
+  .sectionHeading > p {
+    width: auto;
+    max-width: 420px;
+    margin-top: 23px;
+  }
+  .landing h2 {
+    font-size: 37px;
+  }
+  .featureGrid {
+    gap: 14px;
+    grid-template-columns: 1fr;
+  }
+  .featureCard {
+    padding: 27px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 25px;
+  }
+  .featureTop {
+    grid-column: 1 / -1;
+    margin-bottom: 15px;
+  }
+  .featureTop small {
+    font-size: 8px;
+  }
+  .miniTree,
+  .resourceStack,
+  .nodeMap {
+    grid-column: 2;
+    grid-row: 2 / 5;
+    height: 160px;
+    margin: 0;
+  }
+  .featureCard h3 {
+    margin-top: 15px;
+  }
+  .featureCard > p {
+    margin-bottom: 18px;
+  }
+  .cardFooter {
+    margin-top: 0;
+  }
+  .resourceStack > span {
+    font-size: 9px;
+  }
+  .interlude {
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 45px 0;
+  }
+  .interlude > span {
+    font-size: 22px;
+  }
+  .interlude svg {
+    width: 130px;
+  }
+  .interlude p {
+    width: 100%;
+  }
+  .howSection {
+    padding: 60px 30px 140px;
+  }
+  .howInner {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .howIntro {
+    max-width: 470px;
+  }
+  .steps p {
+    max-width: 420px;
+  }
+  .footerInner {
+    margin-inline: 30px;
+  }
+  .footerButterfly {
+    right: 0;
+    width: 60px;
+  }
+  .footerBottom {
+    flex-wrap: wrap;
+  }
+  .footerBottom > span {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+  }
+  .navbar {
+    gap: 10px;
+    padding: 11px 12px;
+    border-radius: 13px;
+  }
+  .brand {
+    gap: 7px;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+  }
+  .brand img {
+    width: 31px;
+    height: 31px;
+  }
+  .brand small {
+    font-size: 5px;
+    letter-spacing: 1.2px;
+  }
+  .navActions {
+    gap: 7px;
+  }
+  .navCta {
+    padding: 10px 11px;
+    font-size: 10px;
+    gap: 9px;
+  }
+  .menuButton {
+    padding: 4px;
+  }
+  .hero {
+    padding: 115px 23px 80px;
+  }
+  .eyebrow {
+    font-size: 7px;
+    letter-spacing: 1.4px;
+  }
+  .landing h1 {
+    font-size: clamp(38px, 11.8vw, 46px);
+    line-height: 1.14;
+    letter-spacing: -2px;
+    margin-top: 23px;
+  }
+  .heroDescription {
+    font-size: 13px;
+    margin: 22px 0;
+  }
+  .actions {
+    gap: 18px;
+  }
+  .primaryButton {
+    padding: 15px 18px;
+    font-size: 11px;
+    gap: 18px;
+  }
+  .textButton {
+    font-size: 10px;
+  }
+  .heroNote {
+    margin-top: 26px;
+    font-size: 9px;
+  }
+  .gardenWorld {
+    margin-top: 45px;
+  }
+  .gardenLabel {
+    font-size: 5.3px;
+    letter-spacing: 1px;
+    left: 14%;
+  }
+  .gardenCaption {
+    font-size: 13px;
+    bottom: -10px;
+    left: 17%;
+  }
+  .floatingCard {
+    padding: 9px;
+    gap: 7px;
+    border-radius: 9px;
+  }
+  .cardIcon {
+    width: 28px;
+    height: 30px;
+  }
+  .cardIcon svg {
+    width: 15px;
+  }
+  .floatingCard strong {
+    font-size: 9px;
+  }
+  .floatingCard small {
+    font-size: 5px;
+    letter-spacing: 0.5px;
+  }
+  .resourceCard small {
+    font-size: 7px;
+    letter-spacing: 0;
+  }
+  .subjectCard {
+    left: -3%;
+    top: 21%;
+  }
+  .resourceCard {
+    right: -2%;
+    bottom: 9%;
+  }
+  .floatingCard > svg {
+    width: 12px;
+  }
+  .cardDot {
+    width: 4px;
+    height: 4px;
+    margin-left: 0;
+  }
+  .butterflyOne {
+    width: 42px;
+  }
+  .butterflyTwo {
+    width: 27px;
+  }
+  .heroBottom {
+    font-size: 7px;
+    letter-spacing: 1.2px;
+    margin-top: 45px;
+  }
+  .heroWave {
+    height: 40px;
+  }
+  .features {
+    padding: 42px 23px 0;
+  }
+  .landing h2 {
+    font-size: 31px;
+    letter-spacing: -1px;
+  }
+  .sectionHeading > p {
+    font-size: 12px;
+  }
+  .featureCard {
+    display: flex;
+    padding: 24px;
+  }
+  .featureTop {
+    margin-bottom: 0;
+  }
+  .miniTree,
+  .resourceStack,
+  .nodeMap {
+    height: 170px;
+    margin: 10px 0;
+  }
+  .featureCard h3 {
+    font-size: 21px;
+  }
+  .featureCard > p {
+    font-size: 12px;
+  }
+  .resourceStack > span {
+    width: 225px;
+    font-size: 10px;
+  }
+  .interlude svg {
+    display: none;
+  }
+  .interlude > span {
+    font-size: 22px;
+  }
+  .interlude > p {
+    font-size: 11px;
+  }
+  .howSection {
+    padding: 55px 23px 120px;
+  }
+  .howIntro > p:not(.eyebrow) {
+    font-size: 12px;
+  }
+  .steps li {
+    gap: 18px;
+    padding: 23px 0;
+  }
+  .steps h3 {
+    font-size: 17px;
+  }
+  .steps p {
+    font-size: 11px;
+  }
+  .steps li:not(:last-child)::after {
+    top: 70px;
+    bottom: -23px;
+  }
+  .footerInner {
+    margin-inline: 23px;
+    padding-top: 30px;
+  }
+  .footerCta h2 {
+    font-size: 41px;
+  }
+  .footerCta .eyebrow {
+    font-size: 6px;
+    letter-spacing: 1.2px;
+  }
+  .footerButterfly {
+    width: 40px;
+    top: 75px;
+    right: -10px;
+  }
+  .footerBottom {
+    font-size: 9px;
+    gap: 15px;
+  }
+  .footerBrand {
+    font-size: 14px;
+  }
+  .footerBrand img {
+    width: 27px;
+    height: 27px;
+  }
+  .footerGarden {
+    height: 75px;
+    top: -74px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing *,
+  .landing *::before,
+  .landing *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .landing [data-animate] {
+    opacity: 1;
+    transform: none;
+  }
+}

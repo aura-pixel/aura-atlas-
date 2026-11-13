@@ -23,6 +23,7 @@ type Material = {
 type MaterialViewerProps = {
   material: Material;
   onBack?: () => void;
+  embedded?: boolean;
 
   /* =========================================================
      CONFIGURACIÓN VISUAL
@@ -35,12 +36,15 @@ type MaterialViewerProps = {
 export function MaterialViewer({
   material,
   onBack,
+  embedded = false,
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
   theme = "LIGHT",
 }: MaterialViewerProps) {
-  console.log("🔥 MATERIAL VIEWER:", material);
-  const materialType = material.type?.toUpperCase();
+  const materialType =
+    material.mimeType === "application/pdf"
+      ? "PDF"
+      : material.type?.toUpperCase();
 
   const hasUrl = Boolean(material.url);
 
@@ -58,13 +62,26 @@ export function MaterialViewer({
     subtle: isDark ? "#737C8A" : "#9CA3AF",
     border: isDark ? "#303540" : "#E5E7EB",
     softBorder: isDark ? "#383E4A" : "#D8DCE3",
-    iconBackground: isDark
-      ? `${primaryColor}20`
-      : "#EEF2F7",
-    iconSurface: isDark
-      ? "#252933"
-      : "#FFFFFF",
+    iconBackground: isDark ? `${primaryColor}20` : "#EEF2F7",
+    iconSurface: isDark ? "#252933" : "#FFFFFF",
   };
+
+  if (embedded) {
+    return (
+      <div style={{ color: colors.foreground, minWidth: 0 }}>
+        {hasUrl ? (
+          <MaterialContent
+            material={material}
+            materialType={materialType}
+            colors={colors}
+            primaryColor={primaryColor}
+          />
+        ) : (
+          <EmptyMaterial colors={colors} />
+        )}
+      </div>
+    );
+  }
 
   const getMaterialIcon = () => {
     switch (materialType) {
@@ -99,12 +116,10 @@ export function MaterialViewer({
         color: colors.foreground,
       }}
     >
-
       {/* =========================================================
           ENCABEZADO
       ========================================================= */}
       <div className="mx-auto max-w-6xl px-6 pb-8 pt-10">
-
         {onBack && (
           <button
             type="button"
@@ -126,7 +141,6 @@ export function MaterialViewer({
         )}
 
         <div className="flex items-start gap-4">
-
           <div
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl shadow-sm"
             style={{
@@ -142,7 +156,6 @@ export function MaterialViewer({
           </div>
 
           <div className="min-w-0">
-
             <p
               className="text-xs font-medium uppercase tracking-wide"
               style={{
@@ -160,13 +173,9 @@ export function MaterialViewer({
             >
               {material.name}
             </h1>
-
           </div>
-
         </div>
-
       </div>
-
 
       {/* =========================================================
           CONTENIDO
@@ -178,13 +187,9 @@ export function MaterialViewer({
           borderColor: colors.border,
         }}
       >
-
         <div className="mx-auto max-w-6xl px-6 py-10">
-
           {!hasUrl ? (
-            <EmptyMaterial
-              colors={colors}
-            />
+            <EmptyMaterial colors={colors} />
           ) : (
             <MaterialContent
               material={material}
@@ -193,11 +198,8 @@ export function MaterialViewer({
               primaryColor={primaryColor}
             />
           )}
-
         </div>
-
       </div>
-
     </section>
   );
 }
@@ -211,8 +213,7 @@ function getVideoEmbedUrl(url: string) {
       parsedUrl.hostname === "www.youtube.com" ||
       parsedUrl.hostname === "youtube.com"
     ) {
-      const videoId =
-        parsedUrl.searchParams.get("v");
+      const videoId = parsedUrl.searchParams.get("v");
 
       if (videoId) {
         return `https://www.youtube.com/embed/${videoId}`;
@@ -220,8 +221,7 @@ function getVideoEmbedUrl(url: string) {
     }
 
     if (parsedUrl.hostname === "youtu.be") {
-      const videoId =
-        parsedUrl.pathname.slice(1);
+      const videoId = parsedUrl.pathname.slice(1);
 
       if (videoId) {
         return `https://www.youtube.com/embed/${videoId}`;
@@ -233,8 +233,7 @@ function getVideoEmbedUrl(url: string) {
       parsedUrl.hostname === "vimeo.com" ||
       parsedUrl.hostname === "www.vimeo.com"
     ) {
-      const videoId =
-        parsedUrl.pathname.split("/").filter(Boolean).pop();
+      const videoId = parsedUrl.pathname.split("/").filter(Boolean).pop();
 
       if (videoId) {
         return `https://player.vimeo.com/video/${videoId}`;
@@ -273,58 +272,49 @@ function MaterialContent({
   primaryColor: string;
 }) {
   const url = material.url
-  ? material.url.startsWith("http")
-    ? material.url
-    : `${API_URL}/materials/file/${material.id}`
-  : "";
-
-console.log("MATERIAL URL:", material.url);
-console.log("FINAL URL:", url);
-console.log("🔥 MATERIAL CONTENT:", material);
+    ? material.url.startsWith("http")
+      ? material.url
+      : `${API_URL}/materials/file/${material.id}`
+    : "";
 
   switch (materialType) {
-
     case "VIDEO": {
-  const embedUrl = getVideoEmbedUrl(url);
+      const embedUrl = getVideoEmbedUrl(url);
 
-  if (embedUrl) {
-    return (
-      <div
-        className="overflow-hidden rounded-2xl border bg-black"
-        style={{
-          borderColor: colors.border,
-        }}
-      >
-        <div className="aspect-video w-full">
-          <iframe
-            src={embedUrl}
-            title={material.name}
-            className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
+      if (embedUrl) {
+        return (
+          <div
+            className="overflow-hidden rounded-2xl border bg-black"
+            style={{
+              borderColor: colors.border,
+            }}
+          >
+            <div className="aspect-video w-full">
+              <iframe
+                src={embedUrl}
+                title={material.name}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div
+          className="overflow-hidden rounded-2xl border bg-black"
+          style={{
+            borderColor: colors.border,
+          }}
+        >
+          <video src={url} controls className="mx-auto max-h-[75vh] w-full">
+            Tu navegador no puede reproducir este video.
+          </video>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border bg-black"
-      style={{
-        borderColor: colors.border,
-      }}
-    >
-      <video
-        src={url}
-        controls
-        className="mx-auto max-h-[75vh] w-full"
-      >
-        Tu navegador no puede reproducir este video.
-      </video>
-    </div>
-  );
-}
+      );
+    }
 
     case "AUDIO":
       return (
@@ -335,16 +325,11 @@ console.log("🔥 MATERIAL CONTENT:", material);
             borderColor: colors.border,
           }}
         >
-          <audio
-            src={url}
-            controls
-            className="w-full"
-          >
+          <audio src={url} controls className="w-full">
             Tu navegador no puede reproducir este audio.
           </audio>
         </div>
       );
-
 
     case "IMAGE":
       return (
@@ -363,7 +348,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
         </div>
       );
 
-
     case "PDF":
       return (
         <div
@@ -375,12 +359,12 @@ console.log("🔥 MATERIAL CONTENT:", material);
         >
           <iframe
             src={url}
+            referrerPolicy="no-referrer"
             title={material.name}
             className="h-[75vh] w-full"
           />
         </div>
       );
-
 
     case "LINK":
     case "ARTICLE":
@@ -393,7 +377,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
         />
       );
 
-
     case "PRESENTATION":
       return (
         <ExternalMaterial
@@ -405,7 +388,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
         />
       );
 
-
     case "DOCUMENT":
       return (
         <ExternalMaterial
@@ -416,7 +398,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
           primaryColor={primaryColor}
         />
       );
-
 
     default:
       return (
@@ -430,7 +411,6 @@ console.log("🔥 MATERIAL CONTENT:", material);
       );
   }
 }
-
 
 /* =============================================================
    MATERIAL EXTERNO
@@ -467,7 +447,6 @@ function ExternalMaterial({
         borderColor: colors.border,
       }}
     >
-
       <div
         className="flex h-14 w-14 items-center justify-center rounded-2xl shadow-sm"
         style={{
@@ -482,7 +461,6 @@ function ExternalMaterial({
         />
       </div>
 
-
       <h2
         className="mt-5 text-lg font-semibold"
         style={{
@@ -492,7 +470,6 @@ function ExternalMaterial({
         {name}
       </h2>
 
-
       <p
         className="mt-2 max-w-md text-sm leading-6"
         style={{
@@ -501,7 +478,6 @@ function ExternalMaterial({
       >
         Este material se abrirá en su ubicación original.
       </p>
-
 
       <a
         href={url}
@@ -515,11 +491,9 @@ function ExternalMaterial({
         {label}
         <ExternalLink className="h-4 w-4" />
       </a>
-
     </div>
   );
 }
-
 
 /* =============================================================
    SIN MATERIAL
@@ -545,7 +519,6 @@ function EmptyMaterial({
         backgroundColor: colors.softSurface,
       }}
     >
-
       <FileText
         className="h-8 w-8"
         style={{
@@ -570,7 +543,6 @@ function EmptyMaterial({
       >
         No se encontró una ubicación para mostrar este recurso.
       </p>
-
     </div>
   );
 }

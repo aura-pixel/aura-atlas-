@@ -1,3 +1,13 @@
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { Req } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminOnly, RolesGuard } from '../security/access';
+import {
+  logoUpload,
+  persistLogo,
+  UploadConcurrency,
+} from '../security/uploads';
 import {
   Body,
   Controller,
@@ -9,111 +19,67 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
-} from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
-import { extname } from "path";
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-import { CareersService } from "./careers.service";
+import { CareersService } from './careers.service';
 
-import { CreateCareerDto } from "./dto/create-career.dto";
-import { UpdateCareerDto } from "./dto/update-career.dto";
+import { CreateCareerDto } from './dto/create-career.dto';
+import { UpdateCareerDto } from './dto/update-career.dto';
 
-@Controller("careers")
+@Controller('careers')
 export class CareersController {
-  constructor(
-    private readonly careersService: CareersService,
-  ) {}
+  constructor(private readonly careersService: CareersService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor("logo", {
-      storage: diskStorage({
-        destination: "./uploads/careers",
-        filename: (req, file, callback) => {
-          const uniqueName =
-            Date.now() +
-            "-" +
-            Math.round(Math.random() * 1e9);
-
-          callback(
-            null,
-            uniqueName + extname(file.originalname),
-          );
-        },
-      }),
-    }),
-  )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @AdminOnly()
+  @UseInterceptors(UploadConcurrency, FileInterceptor('logo', logoUpload))
   async create(
     @Body() dto: CreateCareerDto,
     @UploadedFile() logo?: Express.Multer.File,
+    @Req() req?: any,
   ) {
-    const logoUrl = logo
-      ? `/uploads/careers/${logo.filename}`
-      : undefined;
+    const logoUrl = await persistLogo(logo, 'careers', req.user.id);
 
-    return this.careersService.create(
-      dto,
-      logoUrl,
-    );
+    return this.careersService.create(dto, logoUrl);
   }
 
   @Get()
+  @UseGuards(OptionalJwtAuthGuard)
   findAll(
-    @Query("facultyId")
+    @Query('facultyId')
     facultyId?: string,
+    @Req() req?: any,
   ) {
-    return this.careersService.findAll(
-      facultyId,
-    );
+    return this.careersService.findAll(facultyId, req?.user);
   }
 
-  @Get(":id")
-  findOne(
-    @Param("id") id: string,
-  ) {
-    return this.careersService.findOne(id);
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  findOne(@Param('id') id: string, @Req() req?: any) {
+    return this.careersService.findOne(id, req?.user);
   }
 
-  @Patch(":id")
-  @UseInterceptors(
-    FileInterceptor("logo", {
-      storage: diskStorage({
-        destination: "./uploads/careers",
-        filename: (req, file, callback) => {
-          const uniqueName =
-            Date.now() +
-            "-" +
-            Math.round(Math.random() * 1e9);
-
-          callback(
-            null,
-            uniqueName + extname(file.originalname),
-          );
-        },
-      }),
-    }),
-  )
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @AdminOnly()
+  @UseInterceptors(UploadConcurrency, FileInterceptor('logo', logoUpload))
   async update(
-    @Param("id") id: string,
+    @Param('id') id: string,
     @Body() dto: UpdateCareerDto,
     @UploadedFile() logo?: Express.Multer.File,
+    @Req() req?: any,
   ) {
-    const logoUrl = logo
-      ? `/uploads/careers/${logo.filename}`
-      : undefined;
+    const logoUrl = await persistLogo(logo, 'careers', req.user.id);
 
-    return this.careersService.update(
-      id,
-      dto,
-      logoUrl,
-    );
+    return this.careersService.update(id, dto, logoUrl);
   }
 
-  @Delete(":id")
-  remove(
-    @Param("id") id: string,
-  ) {
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @AdminOnly()
+  remove(@Param('id') id: string) {
     return this.careersService.remove(id);
   }
 }

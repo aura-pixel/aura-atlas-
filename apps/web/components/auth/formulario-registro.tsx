@@ -55,12 +55,9 @@ export function FormularioRegistro() {
         data,
       );
 
-      localStorage.setItem(
-        "auth",
-        JSON.stringify(response),
-      );
+      localStorage.removeItem("auth");
 
-      setModal("success");
+      router.push("/login");
     } catch (error) {
       if (error instanceof Error) {
         if (

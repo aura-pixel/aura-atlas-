@@ -1,5 +1,5 @@
-import { UniversityRequestForm } from "@/components/auth/onboarding/university-request-form";
+import { redirect } from "next/navigation";
 
 export default function RequestPage() {
-  return <UniversityRequestForm />;
+  redirect("/teacher");
 }

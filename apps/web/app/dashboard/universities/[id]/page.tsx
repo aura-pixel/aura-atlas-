@@ -1,4 +1,4 @@
-import { get } from "@/lib/api";
+import { get } from "@/lib/server-api";
 
 import { UniversitySettingsPage } from "@/components/dashboard/universities/university-settings-page";
 

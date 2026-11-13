@@ -31,7 +31,7 @@ export function UniversityCard({
       <div className="flex items-center gap-4">
         {university.logoUrl ? (
           <img
-            src={`http://localhost:3000${university.logoUrl}`}
+            src={`/api/backend${university.logoUrl}`}
             alt={university.name}
             className="h-16 w-16 rounded-xl border bg-background object-contain p-2"
           />

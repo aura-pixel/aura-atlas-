@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { get } from "@/lib/api";
+import { get } from "@/lib/server-api";
 
 import { FacultySettingsPage } from "@/components/dashboard/faculties/faculty-settings-page";
 

@@ -39,13 +39,7 @@ export function AuthProvider({
   }, []);
 
   async function refresh() {
-    const auth = localStorage.getItem("auth");
-
-    if (!auth) {
-      setUser(null);
-      setLoading(false);
-      return;
-    }
+    localStorage.removeItem("auth");
 
     try {
       const data = await authService.me();
@@ -75,14 +69,8 @@ export function AuthProvider({
   async function register(
     data: RegisterData,
   ) {
-    const response =
-      await registerMutation.mutateAsync(data);
-
-    setUser({
-      id: response.user.id,
-      email: response.user.email,
-      role: response.user.role,
-    });
+    await registerMutation.mutateAsync(data);
+    setUser(null);
   }
 
   async function logout() {

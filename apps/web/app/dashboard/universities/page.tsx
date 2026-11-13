@@ -1,6 +1,6 @@
 import { UniversityPage } from "@/components/dashboard/universities/university-page";
 
-import { get } from "@/lib/api";
+import { get } from "@/lib/server-api";
 
 import type { University } from "@/types/university";
 

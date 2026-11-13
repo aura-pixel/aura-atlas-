@@ -1,8 +1,5 @@
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL!;
+export const API_URL = '/api/backend';
 
-if (!API_URL) {
-  throw new Error(
-    "NEXT_PUBLIC_API_URL no está definida."
-  );
+export function assetUrl(url: string): string {
+  return url.startsWith('/uploads/') ? `${API_URL}${url}` : url;
 }

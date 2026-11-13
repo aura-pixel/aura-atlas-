@@ -1,7 +1,5 @@
-import { PartialType } from "@nestjs/mapped-types";
-
-import { CreateSubjectDto } from "./create-subject.dto";
-
+import { PartialType, OmitType } from '@nestjs/mapped-types';
+import { CreateSubjectDto } from './create-subject.dto';
 export class UpdateSubjectDto extends PartialType(
-  CreateSubjectDto,
+  OmitType(CreateSubjectDto, ['careerId'] as const),
 ) {}

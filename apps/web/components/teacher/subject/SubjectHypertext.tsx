@@ -1,13 +1,23 @@
+"use client";
 import Link from "next/link";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   ArrowRight,
+  BookOpen,
+  Compass,
   ExternalLink,
+  FileText,
   Globe2,
+  Link2,
+  LockKeyhole,
+  Palette,
+  Play,
   Sparkles,
 } from "lucide-react";
-
+import { Butterfly } from "@/components/landing/learning-garden";
+import { get } from "@/lib/api";
 import type { Subject } from "./types";
-
+import styles from "./hypertext-introduction.module.css";
 type HypertextProgress = {
   hypertextId: string;
   totalTopics: number;
@@ -16,248 +26,258 @@ type HypertextProgress = {
   percentage: number;
   canGenerate: boolean;
 };
-
-type SubjectHypertextProps = {
-  subject: Subject;
-  hypertextProgress: HypertextProgress | null;
-};
-
 export function SubjectHypertext({
   subject,
-  hypertextProgress,
-}: SubjectHypertextProps) {
-  const hypertext =
-    subject.hypertexts?.[0];
-
-  if (!hypertext) {
+}: {
+  subject: Subject;
+  hypertextProgress: HypertextProgress | null;
+}) {
+  const hypertext = subject.hypertexts?.[0];
+  const [publicUrl, setPublicUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    setPublicUrl(null);
+    if (hypertext?.isPublished) {
+      get<{ publicUrl: string | null }>(`/hypertexts/${hypertext.id}`)
+        .then((data) => {
+          if (active) setPublicUrl(data.publicUrl);
+        })
+        .catch(() => {});
+    }
+    return () => {
+      active = false;
+    };
+  }, [hypertext?.id, hypertext?.isPublished]);
+  if (!hypertext)
     return (
-      <section className="rounded-[2rem] border border-dashed border-[#4A1115]/15 bg-[#FFFDF8] px-6 py-20 text-center">
-
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#E8AFC0]/30 text-[#4A1115]">
-
-          <Sparkles className="h-6 w-6" />
-
-        </div>
-
-        <h2 className="mt-5 text-2xl font-bold">
-          Tu hipertexto todavía no está listo.
+      <section className={styles.empty}>
+        <BookOpen size={38} strokeWidth={1.2} aria-hidden="true" />
+        <span className={styles.eyebrow}>TU PRÓXIMO CAPÍTULO</span>
+        <h2>
+          Todo comienza con <em>tu programa.</em>
         </h2>
-
-        <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#687584]">
-          Agrega contenido a tu materia para comenzar a construir la experiencia
-          que compartirás con tus estudiantes.
+        <p>
+          Primero organiza los objetivos y temas de tu materia. Después podrás
+          reunir tus materiales y darles forma en el editor de hipertexto.
         </p>
-
+        <Link
+          href={`/teacher/subjects/${subject.id}?tab=estructura`}
+          className={styles.primary}
+        >
+          Ir a mi programa <ArrowRight size={16} />
+        </Link>
       </section>
     );
-  }
-
-  const isPublished =
-    hypertext.isPublished;
-
-  const publicUrl =
-  hypertext.slug
-    ? `/${subject.career.faculty.university.abbreviation.toLowerCase()}/${subject.career.abbreviation?.toLowerCase()}/${hypertext.slug}`
-    : null;
-
+  const units = hypertext.units ?? [];
+  const topics = units.flatMap((unit) => unit.topics);
+  const materials = topics.reduce(
+    (total, topic) => total + topic.materials.length,
+    0,
+  );
+  const covered = topics.filter((topic) => topic.materials.length > 0).length;
+  const published = hypertext.isPublished;
   return (
-    <section className="space-y-6">
-
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
-
-      <div className="rounded-[2rem] border border-[#4A1115]/10 bg-[#4A1115] p-8 text-[#FFFDF8] shadow-lg shadow-[#4A1115]/10">
-
-        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-center">
-
-          <div>
-
-            <div className="flex items-center gap-2">
-
-              <Globe2 className="h-4 w-4 text-[#E8AFC0]" />
-
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#E8AFC0]">
-                Hipertexto
-              </span>
-
-            </div>
-
-            <h2 className="mt-4 text-3xl font-bold tracking-[-0.04em]">
-              {hypertext.title}
-            </h2>
-
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/60">
-              {hypertext.description ??
-                "Este es el espacio que compartirás con tus estudiantes."}
-            </p>
-
-          </div>
-
-
-          <div className="shrink-0">
-
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold">
-
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  isPublished
-                    ? "bg-[#E8AFC0]"
-                    : "bg-white/30"
-                }`}
-              />
-
-              {isPublished
-                ? "Publicado"
-                : "En construcción"}
-
-            </span>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      {/* =====================================================
-          PROGRESO
-      ====================================================== */}
-
-      {hypertextProgress && (
-        <div className="rounded-[2rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-7 shadow-sm">
-
-          <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-
-            <div>
-
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#4A1115]">
-                Preparación
-              </p>
-
-              <h3 className="mt-2 text-xl font-bold">
-                {hypertextProgress.canGenerate
-                  ? "Tu contenido está listo."
-                  : "Todavía hay contenido por construir."}
-              </h3>
-
-              <p className="mt-2 text-sm text-[#687584]">
-                {hypertextProgress.topicsWithContent} de{" "}
-                {hypertextProgress.totalTopics} temas cuentan con contenido.
-              </p>
-
-            </div>
-
-            <div className="text-right">
-
-              <span className="text-3xl font-bold text-[#4A1115]">
-                {hypertextProgress.percentage}%
-              </span>
-
-            </div>
-
-          </div>
-
-          <div className="mt-6 h-3 overflow-hidden rounded-full bg-[#F0E8DC]">
-
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${Math.min(
-                  hypertextProgress.percentage,
-                  100,
-                )}%`,
-                backgroundColor:
-                  subject.color ||
-                  "#4A1115",
-              }}
-            />
-
-          </div>
-
-        </div>
-      )}
-
-
-      {/* =====================================================
-          ACCIONES
-      ====================================================== */}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-
-        <Link
-          href={`/teacher/hypertexts/${hypertext.id}`}
-          className="group rounded-[1.75rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
-        >
-
-          <div className="flex items-center justify-between">
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8AFC0]/30 text-[#4A1115]">
-              <Sparkles className="h-5 w-5" />
-            </div>
-
-            <ArrowRight className="h-5 w-5 text-[#687584] transition-transform group-hover:translate-x-1 group-hover:text-[#4A1115]" />
-
-          </div>
-
-          <h3 className="mt-6 text-lg font-bold">
-            Editar hipertexto
-          </h3>
-
-          <p className="mt-2 text-sm leading-6 text-[#687584]">
-            Personaliza y revisa la experiencia antes de compartirla.
+    <section
+      className={styles.introduction}
+      aria-labelledby="hypertext-intro-title"
+    >
+      <div className={styles.hero}>
+        <div className={styles.heroCopy}>
+          <span className={styles.eyebrow}>
+            <Sparkles size={13} aria-hidden="true" /> BIENVENIDA AL EDITOR DE
+            HIPERTEXTO
+          </span>
+          <h2 id="hypertext-intro-title">
+            De tus materiales a una <em>experiencia de aprendizaje.</em>
+          </h2>
+          <p>
+            Un hipertexto reúne los temas de tu materia y conecta sus lecturas,
+            videos y enlaces en un espacio digital que tus estudiantes pueden
+            explorar.
           </p>
-
-        </Link>
-
-
-        {isPublished && publicUrl ? (
+          <p className={styles.invitation}>
+            En el editor podrás darle tu estilo y revisar cómo se recorre. Tu
+            programa y los materiales que ya organizaste te acompañan.
+          </p>
+          <div className={styles.actions}>
+            <Link
+              href={`/teacher/hypertexts/${hypertext.id}`}
+              className={styles.primary}
+            >
+              Entrar al editor <ArrowRight size={16} />
+            </Link>
+            <Link
+              href={`/teacher/subjects/${subject.id}?tab=contenidos`}
+              className={styles.secondary}
+            >
+              Revisar mis materiales
+            </Link>
+          </div>
+          <span className={styles.editorNote}>
+            {published ? <Globe2 size={12} /> : <LockKeyhole size={12} />}{" "}
+            {published
+              ? "Tu hipertexto tiene una versión publicada."
+              : "Trabaja en tu borrador y publica cuando esté listo."}
+          </span>
+        </div>
+        <div
+          className={styles.illustration}
+          aria-hidden="true"
+          style={
+            { "--book-color": subject.color || "#d3c7eb" } as CSSProperties
+          }
+        >
+          <span className={styles.organicShape} />
+          <svg className={styles.connections} viewBox="0 0 400 330" fill="none">
+            <path
+              d="M80 78C8 145 86 239 155 246M306 100C388 99 384 241 305 271"
+              stroke="#baa2ad"
+              strokeWidth="1.3"
+              strokeDasharray="4 6"
+            />
+            <circle cx="80" cy="78" r="3" fill="#ba879b" />
+            <circle cx="305" cy="271" r="3" fill="#8b9aaa" />
+          </svg>
+          <div className={styles.book}>
+            <div className={styles.leftPage}>
+              <BookOpen size={23} strokeWidth={1.2} />
+              <span>TU MATERIA</span>
+              <strong>{subject.name}</strong>
+              <i />
+              <i />
+              <i />
+            </div>
+            <div className={styles.rightPage}>
+              <span>UNIDADES & TEMAS</span>
+              <div>
+                <b>01</b>
+                <i />
+              </div>
+              <div>
+                <b>02</b>
+                <i />
+              </div>
+              <div>
+                <b>03</b>
+                <i />
+              </div>
+              <small>Conecta tus recursos</small>
+            </div>
+            <span className={styles.bookmark} />
+          </div>
+          <span className={`${styles.resourceCard} ${styles.reading}`}>
+            <FileText size={17} /> Lecturas
+          </span>
+          <span className={`${styles.resourceCard} ${styles.video}`}>
+            <Play size={16} /> Videos
+          </span>
+          <span className={`${styles.resourceCard} ${styles.link}`}>
+            <Link2 size={16} /> Enlaces
+          </span>
+          <Butterfly className={styles.butterfly} />
+          <span className={styles.artCaption}>
+            Un espacio. Muchas formas de aprender.
+          </span>
+        </div>
+      </div>
+      <div className={styles.capabilities}>
+        <div className={styles.capabilityHeading}>
+          <span className={styles.eyebrow}>DENTRO DEL EDITOR</span>
+          <h3>
+            Tu contenido, <em>con tu mirada.</em>
+          </h3>
+        </div>
+        <div className={styles.cards}>
+          {[
+            {
+              icon: Palette,
+              number: "01",
+              title: "Dale tu identidad",
+              description:
+                "Elige colores, tipografías, portada y tema visual para tu materia.",
+              color: "pink",
+            },
+            {
+              icon: Compass,
+              number: "02",
+              title: "Recorre la experiencia",
+              description:
+                "Explora las unidades, abre los temas y revisa cómo se presentan tus recursos.",
+              color: "blue",
+            },
+            {
+              icon: Globe2,
+              number: "03",
+              title: "Compártela cuando esté lista",
+              description:
+                "Desde el editor podrás publicar tu hipertexto y obtener su enlace para tus estudiantes.",
+              color: "sage",
+            },
+          ].map((card) => (
+            <article className={styles.card} key={card.number}>
+              <div className={styles.cardTop}>
+                <span className={styles.icon} data-color={card.color}>
+                  <card.icon size={20} strokeWidth={1.4} />
+                </span>
+                <span>{card.number}</span>
+              </div>
+              <h4>{card.title}</h4>
+              <p>{card.description}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+      <div className={styles.startingPoint}>
+        <div>
+          <span className={styles.eyebrow}>TU PUNTO DE PARTIDA</span>
+          <h3>Ya tienes con qué empezar.</h3>
+          <p>Puedes seguir añadiendo materiales mientras diseñas.</p>
+        </div>
+        <dl>
+          <div>
+            <dt>{units.length === 1 ? "unidad" : "unidades"}</dt>
+            <dd>{units.length}</dd>
+          </div>
+          <div>
+            <dt>{topics.length === 1 ? "tema" : "temas"}</dt>
+            <dd>{topics.length}</dd>
+          </div>
+          <div>
+            <dt>{materials === 1 ? "recurso" : "recursos"}</dt>
+            <dd>{materials}</dd>
+          </div>
+        </dl>
+        <span className={styles.coverage}>
+          {covered} de {topics.length} temas con recursos
+        </span>
+      </div>
+      <footer className={styles.publication}>
+        <div className={styles.publicationCopy}>
+          {published ? <Globe2 size={17} /> : <LockKeyhole size={17} />}
+          <div>
+            <strong>
+              {published
+                ? "Hipertexto publicado"
+                : "Tu espacio sigue en borrador"}
+            </strong>
+            <p>
+              {published
+                ? "Puedes entrar al editor para seguir trabajando en tu materia."
+                : "Entrar al editor no publica tu materia. Tú decides cuándo compartirla."}
+            </p>
+          </div>
+        </div>
+        {published && publicUrl && (
           <a
             href={publicUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="group rounded-[1.75rem] border border-[#4A1115]/10 bg-[#4A1115] p-6 text-[#FFFDF8] shadow-lg shadow-[#4A1115]/10 transition-all hover:-translate-y-1"
+            className={styles.publicLink}
           >
-
-            <div className="flex items-center justify-between">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
-                <ExternalLink className="h-5 w-5 text-[#E8AFC0]" />
-              </div>
-
-              <ArrowRight className="h-5 w-5 text-white/50 transition-transform group-hover:translate-x-1 group-hover:text-[#E8AFC0]" />
-
-            </div>
-
-            <h3 className="mt-6 text-lg font-bold">
-              Ver hipertexto público
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-white/60">
-              Abre la versión que recibirán tus estudiantes.
-            </p>
-
+            Ver versión pública <ExternalLink size={13} />
           </a>
-        ) : (
-          <div className="rounded-[1.75rem] border border-dashed border-[#4A1115]/15 bg-[#F7F1E7] p-6">
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#FFFDF8] text-[#4A1115]">
-              <Globe2 className="h-5 w-5" />
-            </div>
-
-            <h3 className="mt-6 text-lg font-bold">
-              Aún no está publicado
-            </h3>
-
-            <p className="mt-2 text-sm leading-6 text-[#687584]">
-              Cuando esté listo podrás generar y compartir su enlace público.
-            </p>
-
-          </div>
         )}
-
-      </div>
-
+      </footer>
     </section>
   );
 }

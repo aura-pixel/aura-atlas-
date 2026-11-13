@@ -22,7 +22,7 @@ export type AcademicTopic = {
 export type AcademicUnit = {
   number: number;
   title: string;
-  objective?: string | null;
+  objective?: string;
   topics: AcademicTopic[];
 };
 
@@ -42,7 +42,7 @@ export type ContentUnit = {
   id: string;
   number: number;
   title: string;
-  objective?: string | null;
+  objective?: string;
   topics: ContentTopic[];
 };
 
@@ -66,52 +66,50 @@ export type Subject = {
   academicStructureConfirmed?: boolean;
 
   career: {
-  id: string;
-  name: string;
-  abbreviation?: string | null;
-
-  faculty: {
     id: string;
     name: string;
+    abbreviation?: string | null;
 
-    university: {
+    faculty: {
       id: string;
       name: string;
-      abbreviation: string;
-    };
-  };
-};
 
-  hypertexts: {
-  id: string;
-  title: string;
-  description?: string | null;
-  isPublished: boolean;
-  slug?: string | null;
-
-  subject: {
-    career: {
-      name: string;
-      abbreviation?: string | null;
-
-      faculty: {
+      university: {
+        id: string;
         name: string;
-
-        university: {
-          name: string;
-          abbreviation: string;
-        };
+        abbreviation: string;
       };
     };
   };
 
-  units: ContentUnit[];
-}[];
+  hypertexts: {
+    academicStructure?: AcademicStructure | null;
+    academicStructureConfirmed?: boolean;
+    id: string;
+    title: string;
+    description?: string | null;
+    isPublished: boolean;
+    slug?: string | null;
+
+    subject: {
+      career: {
+        name: string;
+        abbreviation?: string | null;
+
+        faculty: {
+          name: string;
+
+          university: {
+            name: string;
+            abbreviation: string;
+          };
+        };
+      };
+    };
+
+    units: ContentUnit[];
+  }[];
 };
 
 export type Tab =
-  | "resumen"
-  | "informacion"
-  | "estructura"
-  | "contenidos"
-  | "hipertexto";
+  "resumen" | "informacion" | "estructura" | "contenidos" | "hipertexto";

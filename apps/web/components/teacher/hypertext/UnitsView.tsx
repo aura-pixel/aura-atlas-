@@ -5,7 +5,10 @@ import { ArrowRight, BookOpen, FileText } from "lucide-react";
 
 import { patch } from "@/lib/api";
 import { UnitImage } from "./UnitImage";
-import { ImagePickerModal } from "./ImagePickerModal";
+import dynamic from "next/dynamic";
+const ImagePickerModal = dynamic(() =>
+  import("./ImagePickerModal").then((module) => module.ImagePickerModal),
+);
 
 type Material = {
   id: string;
@@ -19,7 +22,7 @@ type Topic = {
   id: string;
   number: string;
   title: string;
-  materials?: Material[];
+  materials: Material[];
 };
 
 type Unit = {
@@ -28,7 +31,7 @@ type Unit = {
   title: string;
   objective?: string | null;
   imageUrl?: string | null;
-  topics?: Topic[];
+  topics: Topic[];
 };
 
 type UnitsViewProps = {
@@ -59,30 +62,28 @@ export function UnitsView({
   secondaryColor = "#5EE1E6",
   onUnitSelect,
 }: UnitsViewProps) {
-  const [unitImages, setUnitImages] = useState<
-    Record<string, string | null>
-  >({});
+  const [unitImages, setUnitImages] = useState<Record<string, string | null>>(
+    {},
+  );
 
-  const [imagePickerOpen, setImagePickerOpen] =
-    useState(false);
+  const [imagePickerOpen, setImagePickerOpen] = useState(false);
 
-  const [selectedUnitId, setSelectedUnitId] =
-    useState<string | null>(null);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
 
-  const [isSavingImage, setIsSavingImage] =
-    useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
 
   /*
    * Inicializamos las imágenes con las que vienen
    * directamente desde la base de datos.
    */
   useEffect(() => {
-    const initialImages = units.reduce<
-      Record<string, string | null>
-    >((images, unit) => {
-      images[unit.id] = unit.imageUrl ?? null;
-      return images;
-    }, {});
+    const initialImages = units.reduce<Record<string, string | null>>(
+      (images, unit) => {
+        images[unit.id] = unit.imageUrl ?? null;
+        return images;
+      },
+      {},
+    );
 
     setUnitImages(initialImages);
   }, [units]);
@@ -91,14 +92,11 @@ export function UnitsView({
     .map((unit) => {
       const visibleTopics =
         unit.topics?.filter(
-          (topic) =>
-            topic.materials &&
-            topic.materials.length > 0,
+          (topic) => topic.materials && topic.materials.length > 0,
         ) ?? [];
 
       const materialCount = visibleTopics.reduce(
-        (total, topic) =>
-          total + (topic.materials?.length ?? 0),
+        (total, topic) => total + (topic.materials?.length ?? 0),
         0,
       );
 
@@ -108,9 +106,7 @@ export function UnitsView({
         materialCount,
       };
     })
-    .filter(
-      (unit) => unit.visibleTopics.length > 0,
-    );
+    .filter((unit) => unit.visibleTopics.length > 0);
 
   const openImagePicker = (unitId: string) => {
     setSelectedUnitId(unitId);
@@ -126,9 +122,7 @@ export function UnitsView({
     setSelectedUnitId(null);
   };
 
-  const handleImageApply = async (
-    imageUrl: string | null,
-  ) => {
+  const handleImageApply = async (imageUrl: string | null) => {
     if (!selectedUnitId) {
       return;
     }
@@ -158,12 +152,9 @@ export function UnitsView({
       /*
        * Guardamos la URL de la imagen en la unidad.
        */
-      await patch(
-        `/hypertexts/${hypertextId}/units/${selectedUnitId}/image`,
-        {
-          imageUrl,
-        },
-      );
+      await patch(`/hypertexts/${hypertextId}/units/${selectedUnitId}/image`, {
+        imageUrl,
+      });
 
       /*
        * Actualizamos inmediatamente la vista
@@ -177,21 +168,16 @@ export function UnitsView({
       setImagePickerOpen(false);
       setSelectedUnitId(null);
     } catch (error) {
-      console.error(
-        "Error al guardar la imagen de la unidad:",
-        error,
-      );
+      console.error("Error al guardar la imagen de la unidad:", error);
 
-      alert(
-        "No se pudo guardar la imagen de la unidad.",
-      );
+      alert("No se pudo guardar la imagen de la unidad.");
     } finally {
       setIsSavingImage(false);
     }
   };
 
   const selectedUnitImage = selectedUnitId
-    ? unitImages[selectedUnitId] ?? null
+    ? (unitImages[selectedUnitId] ?? null)
     : null;
 
   return (
@@ -229,8 +215,8 @@ export function UnitsView({
           </h2>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6B7280]">
-            Avanza por el contenido de la materia siguiendo
-            el recorrido de aprendizaje.
+            Avanza por el contenido de la materia siguiendo el recorrido de
+            aprendizaje.
           </p>
         </div>
       </div>
@@ -279,8 +265,7 @@ export function UnitsView({
                     <div
                       className="absolute left-1/2 top-1/2 z-20 hidden h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white shadow-sm md:block"
                       style={{
-                        backgroundColor:
-                          primaryColor,
+                        backgroundColor: primaryColor,
                       }}
                     />
 
@@ -293,21 +278,10 @@ export function UnitsView({
                       }`}
                     >
                       <UnitImage
-                        imageUrl={
-                          unitImages[unit.id] ??
-                          null
-                        }
-                        primaryColor={
-                          primaryColor
-                        }
-                        secondaryColor={
-                          secondaryColor
-                        }
-                        onClick={() =>
-                          openImagePicker(
-                            unit.id,
-                          )
-                        }
+                        imageUrl={unitImages[unit.id] ?? null}
+                        primaryColor={primaryColor}
+                        secondaryColor={secondaryColor}
+                        onClick={() => openImagePicker(unit.id)}
                       />
                     </div>
 
@@ -321,9 +295,7 @@ export function UnitsView({
                     >
                       <button
                         type="button"
-                        onClick={() =>
-                          onUnitSelect?.(unit)
-                        }
+                        onClick={() => onUnitSelect?.(unit)}
                         className="group w-full max-w-[430px] text-left"
                       >
                         <div className="relative overflow-hidden rounded-[2rem] border border-[#E5E7EB] bg-[#FAFAFB] shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DCD6FF] hover:bg-white hover:shadow-xl">
@@ -337,16 +309,14 @@ export function UnitsView({
                             <div
                               className="absolute -right-12 -top-16 h-36 w-36 rounded-full opacity-30"
                               style={{
-                                backgroundColor:
-                                  primaryColor,
+                                backgroundColor: primaryColor,
                               }}
                             />
 
                             <div
                               className="absolute -bottom-20 -left-12 h-40 w-40 rounded-full opacity-20"
                               style={{
-                                backgroundColor:
-                                  secondaryColor,
+                                backgroundColor: secondaryColor,
                               }}
                             />
 
@@ -354,8 +324,7 @@ export function UnitsView({
                             <div
                               className="absolute left-5 top-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-xl font-semibold shadow-sm"
                               style={{
-                                color:
-                                  primaryColor,
+                                color: primaryColor,
                               }}
                             >
                               {unit.number}
@@ -366,8 +335,7 @@ export function UnitsView({
                               <ArrowRight
                                 className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                                 style={{
-                                  color:
-                                    primaryColor,
+                                  color: primaryColor,
                                 }}
                               />
                             </div>
@@ -378,8 +346,7 @@ export function UnitsView({
                             <p
                               className="text-[11px] font-semibold uppercase tracking-[0.18em]"
                               style={{
-                                color:
-                                  primaryColor,
+                                color: primaryColor,
                               }}
                             >
                               Unidad {unit.number}
@@ -401,22 +368,14 @@ export function UnitsView({
                                   <BookOpen
                                     className="h-3.5 w-3.5"
                                     style={{
-                                      color:
-                                        primaryColor,
+                                      color: primaryColor,
                                     }}
                                   />
                                 </div>
 
                                 <span>
-                                  {
-                                    unit
-                                      .visibleTopics
-                                      .length
-                                  }{" "}
-                                  {unit
-                                    .visibleTopics
-                                    .length ===
-                                  1
+                                  {unit.visibleTopics.length}{" "}
+                                  {unit.visibleTopics.length === 1
                                     ? "tema"
                                     : "temas"}
                                 </span>
@@ -433,18 +392,14 @@ export function UnitsView({
                                   <FileText
                                     className="h-3.5 w-3.5"
                                     style={{
-                                      color:
-                                        primaryColor,
+                                      color: primaryColor,
                                     }}
                                   />
                                 </div>
 
                                 <span>
-                                  {
-                                    unit.materialCount
-                                  }{" "}
-                                  {unit.materialCount ===
-                                  1
+                                  {unit.materialCount}{" "}
+                                  {unit.materialCount === 1
                                     ? "material"
                                     : "materiales"}
                                 </span>
@@ -458,21 +413,10 @@ export function UnitsView({
                     {/* Imagen móvil */}
                     <div className="flex justify-center md:hidden">
                       <UnitImage
-                        imageUrl={
-                          unitImages[unit.id] ??
-                          null
-                        }
-                        primaryColor={
-                          primaryColor
-                        }
-                        secondaryColor={
-                          secondaryColor
-                        }
-                        onClick={() =>
-                          openImagePicker(
-                            unit.id,
-                          )
-                        }
+                        imageUrl={unitImages[unit.id] ?? null}
+                        primaryColor={primaryColor}
+                        secondaryColor={secondaryColor}
+                        onClick={() => openImagePicker(unit.id)}
                       />
                     </div>
                   </div>
@@ -491,8 +435,8 @@ export function UnitsView({
             </h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#6B7280]">
-              Las unidades aparecerán cuando tengan
-              temas con materiales disponibles.
+              Las unidades aparecerán cuando tengan temas con materiales
+              disponibles.
             </p>
           </div>
         )}
@@ -502,19 +446,17 @@ export function UnitsView({
           SELECTOR DE IMÁGENES
       ====================================================== */}
 
-      <ImagePickerModal
-        isOpen={imagePickerOpen}
-        onClose={closeImagePicker}
-        onApply={handleImageApply}
-        initialImageUrl={selectedUnitImage}
-        libraryImages={UNIT_IMAGE_LIBRARY}
-        title={
-          selectedUnitId
-            ? "Imagen de la unidad"
-            : "Agregar imagen"
-        }
-        description="Selecciona una imagen para acompañar esta unidad."
-      />
+      {imagePickerOpen && (
+        <ImagePickerModal
+          isOpen={imagePickerOpen}
+          onClose={closeImagePicker}
+          onApply={handleImageApply}
+          initialImageUrl={selectedUnitImage}
+          libraryImages={UNIT_IMAGE_LIBRARY}
+          title={selectedUnitId ? "Imagen de la unidad" : "Agregar imagen"}
+          description="Selecciona una imagen para acompañar esta unidad."
+        />
+      )}
     </section>
   );
 }

@@ -27,12 +27,12 @@ export interface AuthUser {
 }
 
 export interface AuthMe {
+  name?: string;
   id: string;
   email: string;
   role: Role;
 }
 
 export interface AuthResponse {
-  accessToken: string;
   user: AuthUser;
 }

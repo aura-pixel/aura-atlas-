@@ -20,7 +20,7 @@ type Topic = {
   id: string;
   number: string;
   title: string;
-  materials?: Material[];
+  materials: Material[];
 };
 
 type Unit = {
@@ -29,10 +29,11 @@ type Unit = {
   title: string;
   objective?: string | null;
   imageUrl?: string | null;
-  topics?: Topic[];
+  topics: Topic[];
 };
 
 type UnitViewProps = {
+  theme?: "LIGHT" | "DARK";
   unit: Unit;
   subjectName?: string;
   primaryColor?: string;

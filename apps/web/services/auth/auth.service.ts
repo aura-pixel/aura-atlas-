@@ -16,7 +16,7 @@ export const authService = {
   },
 
   register(data: RegisterData) {
-    return post<AuthResponse>(
+    return post<{verificationRequired:boolean;message:string}>(
       "/auth/register",
       data,
     );

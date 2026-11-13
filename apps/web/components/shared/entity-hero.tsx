@@ -1,6 +1,6 @@
 
 type EntityHeroProps = {
-  image?: string;
+  image?: string | null;
   title: string;
   subtitle: string;
   description?: string;
@@ -18,7 +18,7 @@ export function EntityHero({
 
         {image ? (
   <img
-  src={`${process.env.NEXT_PUBLIC_API_URL}${image}`}
+  src={`/api/backend${image}`}
   alt={title}
   className="h-24 w-24 rounded-2xl border bg-background object-contain p-3"
 />

@@ -26,7 +26,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type LoginResponse = {
-  accessToken: string;
   user: {
     id: string;
     name: string;
@@ -52,10 +51,7 @@ export function FormularioLogin() {
         data,
       );
 
-      localStorage.setItem(
-        "auth",
-        JSON.stringify(response),
-      );
+      localStorage.removeItem("auth");
 
       // Super Admin → dashboard administrativo
       if (response.user.role === "SUPER_ADMIN") {

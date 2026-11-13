@@ -1,3 +1,6 @@
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { RolesGuard } from './security/access';
 import { Module } from "@nestjs/common";
 
 import { ConfigModule } from "@nestjs/config";
@@ -20,7 +23,9 @@ import {
 } from "./academic-structure/academic-structure.module";
 
 @Module({
+  providers: [RolesGuard, { provide: APP_GUARD, useClass: ThrottlerGuard }],
   imports: [
+    ThrottlerModule.forRoot([{ttl:60000,limit:120}]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

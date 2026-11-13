@@ -60,7 +60,7 @@ export function UniversitySelector() {
     async function loadUniversities() {
       try {
         const data =
-          await get("/universities");
+          await get<University[]>("/universities");
 
         setUniversities(data);
       } finally {
@@ -74,9 +74,10 @@ export function UniversitySelector() {
   useEffect(() => {
     if (!selectedUniversity) return;
 
+    const universityId = selectedUniversity.id;
     async function loadFaculties() {
-      const data = await get(
-        `/faculties?universityId=${selectedUniversity.id}`,
+      const data = await get<Faculty[]>(
+        `/faculties?universityId=${universityId}`,
       );
 
       setFaculties(data);
@@ -91,9 +92,10 @@ export function UniversitySelector() {
   useEffect(() => {
     if (!selectedFaculty) return;
 
+    const facultyId = selectedFaculty.id;
     async function loadCareers() {
-      const data = await get(
-        `/careers?facultyId=${selectedFaculty.id}`,
+      const data = await get<Career[]>(
+        `/careers?facultyId=${facultyId}`,
       );
 
       setCareers(data);

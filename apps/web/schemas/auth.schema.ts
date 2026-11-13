@@ -4,7 +4,7 @@ const email = z.email("Correo electrónico inválido.");
 
 const password = z
   .string()
-  .min(8, "La contraseña debe tener al menos 8 caracteres.");
+  .max(72).min(12, "La contraseña debe tener al menos 12 caracteres.");
 
 export const registerSchema = z.object({
   name: z
@@ -17,7 +17,7 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email,
-  password,
+  password: z.string().min(1).max(72),
 });
 
 export type RegisterSchema = z.infer<typeof registerSchema>;

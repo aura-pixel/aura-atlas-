@@ -78,7 +78,7 @@ export function SubjectForm({
         formData.append("color", data.color);
       }
 
-      formData.append("careerId", careerId);
+      if(mode === "create") formData.append("careerId", careerId);
 
       if (logo) {
         formData.append("logo", logo);

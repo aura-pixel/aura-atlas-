@@ -1,31 +1,36 @@
 "use client";
+import { getSubjectTextColor } from "@/lib/subject-colors";
 
+import Image from "next/image";
+import Link from "next/link";
+import { useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
+  ArrowUpRight,
   BookOpen,
+  Bookmark,
   GraduationCap,
+  LoaderCircle,
   LogOut,
   Plus,
-  Sparkles,
 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { post } from "@/lib/api";
+import { assetUrl } from "@/lib/config";
+import { Butterfly } from "@/components/landing/learning-garden";
+import { BetaBanner } from "./BetaBanner";
+import styles from "./teacher-dashboard.module.css";
 
-import { Button } from "@/components/ui/button";
-import { BetaBanner } from "@/components/teacher/BetaBanner";
-
-type AcademicContext = {
-  name: string;
-};
-
+type AcademicContext = { name: string };
 type Subject = {
   id: string;
   name: string;
-  abbreviation?: string;
-  description?: string;
-  color?: string;
+  abbreviation?: string | null;
+  description?: string | null;
+  color?: string | null;
+  logoUrl?: string | null;
 };
-
 type TeacherDashboardProps = {
   userName?: string;
   university?: AcademicContext;
@@ -35,520 +40,398 @@ type TeacherDashboardProps = {
   onCreateSubject?: () => void;
 };
 
+function StudyBooks() {
+  return (
+    <div className={styles.studyArt} aria-hidden="true">
+      <svg
+        viewBox="0 0 520 340"
+        fill="none"
+        className={styles.booksIllustration}
+      >
+        <path
+          d="M107 75C174 16 270 52 302 33C394-18 476 88 446 177C490 260 401 304 323 279C239 319 138 283 113 244C29 223 39 118 107 75Z"
+          fill="#e8afc0"
+          fillOpacity=".35"
+        />
+        <path
+          d="M117 245C185 209 380 209 424 248C472 290 145 314 98 280C77 265 94 255 117 245Z"
+          fill="#8b9aaa"
+          fillOpacity=".24"
+        />
+        <path
+          d="M77 167C133 25 372 33 430 167C465 263 230 250 183 163"
+          stroke="#4a1115"
+          strokeOpacity=".22"
+          strokeDasharray="4 7"
+        />
+        <g className={styles.loosePage}>
+          <path
+            d="M326 60L398 79L419 166L332 178L305 78Z"
+            fill="#fffdf8"
+            stroke="#4a1115"
+            strokeWidth="1.4"
+          />
+          <path
+            d="M326 60L331 89L305 78M345 102L388 111M346 117L395 127M350 133L381 140"
+            stroke="#8b9aaa"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <circle cx="361" cy="157" r="8" fill="#e8afc0" />
+          <path
+            d="M358 157L360 160L365 155"
+            stroke="#4a1115"
+            strokeWidth="1.4"
+          />
+        </g>
+        <g className={styles.bookStack}>
+          <path
+            d="M130 236L326 212L402 236L204 266Z"
+            fill="#8b9aaa"
+            stroke="#4a1115"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M130 236V256L204 285L402 254V236L204 266Z"
+            fill="#fffdf8"
+            stroke="#4a1115"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M204 266V285M141 250L201 273M217 275L390 248"
+            stroke="#8b9aaa"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M112 211L308 189L387 210L187 240Z"
+            fill="#e8afc0"
+            stroke="#4a1115"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M112 211V231L187 260L387 230V210L187 240Z"
+            fill="#fffdf8"
+            stroke="#4a1115"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M187 240V260M124 226L184 249M199 249L376 222"
+            stroke="#b996a1"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M143 195L289 175L366 195L218 220Z"
+            fill="#4a1115"
+            stroke="#4a1115"
+            strokeWidth="2"
+          />
+          <path
+            d="M143 195V208L218 236L366 211V195L218 220Z"
+            fill="#fffdf8"
+            stroke="#4a1115"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M218 220V236M158 204L214 225M230 227L355 205"
+            stroke="#8b9aaa"
+            strokeWidth="1.2"
+          />
+          <path
+            d="M268 221V247L278 237L288 241V218"
+            fill="#e8afc0"
+            stroke="#4a1115"
+            strokeWidth="1.2"
+          />
+        </g>
+        <g className={styles.openBook}>
+          <path
+            d="M151 127C184 116 213 124 247 146C279 124 310 118 344 123L351 186C313 182 280 195 249 215C212 194 183 187 146 190Z"
+            fill="#fffdf8"
+            stroke="#4a1115"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M247 146L249 215M155 199C191 197 218 206 249 224C281 204 317 194 351 195"
+            stroke="#4a1115"
+            strokeWidth="1.8"
+          />
+          <path
+            d="M166 141C191 138 214 147 230 157M165 153C189 150 211 160 230 168M164 165C186 163 205 169 220 177M263 157C284 141 310 135 331 137M264 169C288 153 309 147 332 150M265 180C281 170 297 165 310 163"
+            stroke="#8b9aaa"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+        </g>
+        <g transform="translate(125 89) rotate(-12)">
+          <rect
+            width="45"
+            height="47"
+            rx="10"
+            fill="#fffdf8"
+            stroke="#4a1115"
+            strokeOpacity=".25"
+          />
+          <path
+            d="M14 14H31V34L22 29L14 34Z"
+            fill="#e8afc0"
+            stroke="#4a1115"
+            strokeWidth="1.3"
+          />
+        </g>
+      </svg>
+      <Butterfly className={styles.butterflyOne} />
+      <Butterfly className={styles.butterflyTwo} />
+    </div>
+  );
+}
+
 export function TeacherDashboard({
   userName = "Docente",
-  university = {
-    name: "Universidad Autónoma del Estado de México",
-  },
-  faculty = {
-    name: "Facultad de Medicina",
-  },
-  career = {
-    name: "Terapia Ocupacional",
-  },
+  university,
+  faculty,
+  career,
   subjects = [],
   onCreateSubject,
 }: TeacherDashboardProps) {
   const router = useRouter();
+  const client = useQueryClient();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
 
-  const handleCreateSubject = () => {
-    if (onCreateSubject) {
-      onCreateSubject();
-    } else {
-      router.push("/teacher/subjects/new");
+  function handleCreateSubject() {
+    if (onCreateSubject) onCreateSubject();
+    else router.push("/teacher/subjects/new");
+  }
+
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    setLogoutError("");
+    try {
+      await post("/auth/logout", {});
+      client.clear();
+      localStorage.removeItem("auth");
+      router.replace("/");
+    } catch {
+      setLogoutError("No pudimos cerrar la sesión. Inténtalo de nuevo.");
+      setLoggingOut(false);
     }
-  };
-
-  const handleLogout = () => {
-  localStorage.removeItem("auth");
-  router.replace("/");
-};
+  }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F7F1E7] text-[#211719]">
-
-<BetaBanner />
-
-      {/* =====================================================
-          DECORACIÓN DE FONDO
-      ====================================================== */}
-
-      <div className="pointer-events-none absolute -left-32 top-24 h-72 w-72 rounded-full bg-[#E8AFC0]/25 blur-[100px]" />
-
-      <div className="pointer-events-none absolute -right-32 top-[38%] h-80 w-80 rounded-full bg-[#8B9AAA]/20 blur-[110px]" />
-
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-[#E8AFC0]/15 blur-[100px]" />
-
-
-      {/* =====================================================
-          NAVBAR
-      ====================================================== */}
-
-      <header className="sticky top-0 z-40 border-b border-[#4A1115]/10 bg-[#FFFDF8]/75 backdrop-blur-xl">
-
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-10">
-
-          {/* Marca */}
-
+    <main className={styles.page}>
+      <div className={styles.backgroundShape} aria-hidden="true" />
+      <header className={styles.header}>
+        <div className={styles.headerInner}>
           <Link
             href="/teacher/dashboard"
-            className="flex items-center gap-3"
+            className={styles.brand}
+            aria-label="Aura Atlas, mi espacio docente"
           >
-
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#4A1115] shadow-lg shadow-[#4A1115]/15">
-
-              <img
-                src="/aura-atlas.png"
-                alt="Aura Atlas"
-                className="h-8 w-8"
-              />
-
-            </div>
-
-            <div className="hidden sm:block">
-
-              <p className="text-sm font-semibold tracking-tight text-[#4A1115]">
-                Aura Atlas
-              </p>
-
-              <p className="text-[10px] text-[#687584]">
-                by Tzalli Studio
-              </p>
-
-            </div>
-
+            <Image
+              src="/aura-atlas.png"
+              width={36}
+              height={36}
+              alt=""
+              priority
+            />
+            <span>
+              Aura Atlas<small>ESPACIO DOCENTE</small>
+            </span>
           </Link>
-
-          {/* Perfil + cerrar sesión */}
-
-<div className="flex items-center gap-3">
-
-  <div className="hidden text-right sm:block">
-    <p className="text-sm font-medium text-[#211719]">
-      {userName}
-    </p>
-
-    <p className="text-xs text-[#687584]">
-      Docente
-    </p>
-  </div>
-
-  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8AFC0]/50 text-sm font-semibold text-[#4A1115]">
-    {userName.charAt(0).toUpperCase()}
-  </div>
-
-  <div className="h-7 w-px bg-[#4A1115]/10" />
-
-  <button
-    type="button"
-    onClick={handleLogout}
-    title="Cerrar sesión"
-    className="flex h-10 w-10 items-center justify-center rounded-xl text-[#687584] transition-all duration-200 hover:bg-[#4A1115]/5 hover:text-[#4A1115]"
-  >
-    <LogOut className="h-4 w-4" />
-  </button>
-
-</div>
-
-
-        </div>
-
-      </header>
-
-
-      {/* =====================================================
-          CONTENIDO
-      ====================================================== */}
-
-      <div className="relative z-10 mx-auto max-w-7xl px-6 py-12 lg:px-10 lg:py-16">
-
-
-        {/* =================================================
-            BIENVENIDA
-        ================================================== */}
-
-        <section className="grid items-end gap-8 lg:grid-cols-[1fr_auto]">
-
-          <div>
-
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#4A1115]/10 bg-[#FFFDF8]/80 px-4 py-2 shadow-sm">
-
-              <Sparkles className="h-3.5 w-3.5 text-[#4A1115]" />
-
-              <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#4A1115]">
-                Espacio docente
-              </span>
-
-            </div>
-
-
-            <h1 className="max-w-3xl text-4xl font-bold leading-[1.05] tracking-[-0.045em] sm:text-5xl lg:text-6xl">
-
-              Hola, {userName}.
-
-              <span className="ml-2 inline-block">
-                👋
-              </span>
-
-            </h1>
-
-
-            <p className="mt-5 max-w-2xl text-base leading-8 text-[#687584] sm:text-lg">
-              Este es tu espacio para transformar el conocimiento de tus
-              materias en experiencias que puedan explorar tus estudiantes.
-            </p>
-
-          </div>
-
-
-          {/* Acción */}
-
-          {subjects.length > 0 && (
-            <Button
-              size="lg"
-              onClick={handleCreateSubject}
-              className="h-12 rounded-xl bg-[#4A1115] px-5 text-sm font-semibold text-[#FFFDF8] shadow-lg shadow-[#4A1115]/20 transition-all hover:-translate-y-1 hover:bg-[#5D171D]"
+          <nav className={styles.nav} aria-label="Navegación del docente">
+            <a href="#materias" aria-current="page">
+              Mis materias
+            </a>
+            <Link href="/teacher/requests">Mis solicitudes</Link>
+          </nav>
+          <div className={styles.profile}>
+            <span className={styles.profileName}>{userName}</span>
+            <span className={styles.avatar} aria-hidden="true">
+              {Array.from(userName.trim())[0]?.toLocaleUpperCase("es") || "D"}
+            </span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className={styles.logout}
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
             >
-
-              <Plus className="mr-2 h-4 w-4" />
-
-              Nueva materia
-
-            </Button>
-          )}
-
-        </section>
-
-
-        {/* =================================================
-            CONTEXTO ACADÉMICO
-        ================================================== */}
-
-        <section className="mt-14">
-
-          <div className="relative overflow-hidden rounded-[2rem] border border-[#4A1115]/10 bg-[#4A1115] p-8 text-[#FFFDF8] shadow-xl shadow-[#4A1115]/10 sm:p-10 lg:p-12">
-
-            {/* Decoraciones */}
-
-            <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full border-[35px] border-[#E8AFC0]/10" />
-
-            <div className="pointer-events-none absolute bottom-[-80px] left-1/2 h-48 w-48 rounded-full bg-[#E8AFC0]/10 blur-3xl" />
-
-            <div className="relative grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
-
-              <div>
-
-                <div className="flex items-center gap-2 text-[#E8AFC0]">
-
-                  <GraduationCap className="h-4 w-4" />
-
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.2em]">
-                    Tu contexto académico
-                  </span>
-
-                </div>
-
-
-                <h2 className="mt-5 max-w-3xl text-3xl font-semibold leading-tight tracking-[-0.03em] sm:text-4xl">
-
-                  {career.name}
-
-                </h2>
-
-
-                <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[#FFFDF8]/60">
-
-                  <span>
-                    {faculty.name}
-                  </span>
-
-                  <span className="text-[#E8AFC0]">
-                    •
-                  </span>
-
-                  <span>
-                    {university.name}
-                  </span>
-
-                </div>
-
-              </div>
-
-
-              {/* Contador */}
-
-              <div className="flex items-end gap-4">
-
-                <div className="h-12 w-px bg-white/10" />
-
-                <div>
-
-                  <p className="text-4xl font-semibold tracking-tight text-[#FFFDF8]">
-                    {subjects.length}
-                  </p>
-
-                  <p className="mt-1 text-xs text-[#FFFDF8]/50">
-                    {subjects.length === 1
-                      ? "materia"
-                      : "materias"}
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
+              {loggingOut ? (
+                <LoaderCircle size={17} className={styles.spinner} />
+              ) : (
+                <LogOut size={17} />
+              )}
+            </button>
           </div>
-
-        </section>
-
-
-        {/* =================================================
-            MATERIAS
-        ================================================== */}
-
-        <section className="mt-16">
-
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-
-            <div>
-
-              <div className="flex items-center gap-3">
-
-                <span className="h-px w-8 bg-[#4A1115]" />
-
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#4A1115]">
-                  Tu contenido
-                </span>
-
-              </div>
-
-
-              <h2 className="mt-4 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">
-
-                Tus materias
-
-              </h2>
-
-            </div>
-
-
+        </div>
+      </header>
+      <div className={styles.content}>
+        {logoutError && (
+          <p role="alert" className={styles.error}>
+            {logoutError}
+          </p>
+        )}
+        <section className={styles.hero} aria-labelledby="dashboard-title">
+          <div className={styles.heroCopy}>
+            <h1 id="dashboard-title">
+              Hola, <em>{userName}.</em>
+            </h1>
+            <p>
+              Organiza tus materias y crea experiencias de aprendizaje a tu
+              manera.
+            </p>
             {subjects.length > 0 && (
-              <span className="text-sm text-[#687584]">
-                {subjects.length}{" "}
-                {subjects.length === 1
-                  ? "espacio"
-                  : "espacios"}{" "}
-                de aprendizaje
-              </span>
-            )}
-
-          </div>
-
-
-          {/* =================================================
-              ESTADO VACÍO
-          ================================================== */}
-
-          {subjects.length === 0 && (
-
-            <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-[#4A1115]/10 bg-[#FFFDF8] px-6 py-16 shadow-sm sm:px-12">
-
-              {/* Formas */}
-
-              <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#E8AFC0]/30" />
-
-              <div className="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full border-[25px] border-[#8B9AAA]/15" />
-
-              <div className="relative mx-auto max-w-xl text-center">
-
-                <div className="mx-auto flex h-20 w-20 rotate-[-4deg] items-center justify-center rounded-[1.75rem] bg-[#E8AFC0]/40 text-[#4A1115] shadow-sm">
-
-                  <BookOpen className="h-9 w-9" />
-
-                </div>
-
-
-                <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#4A1115]">
-                  Primer paso
-                </p>
-
-
-                <h3 className="mt-3 text-3xl font-bold tracking-[-0.035em]">
-                  Empieza por una materia.
-                </h3>
-
-
-                <p className="mx-auto mt-4 max-w-lg text-sm leading-7 text-[#687584]">
-                  Crea tu primera materia y comienza a construir el espacio
-                  donde organizarás unidades, temas, recursos e hipertextos.
-                </p>
-
-
-                <Button
-                  size="lg"
-                  onClick={handleCreateSubject}
-                  className="mt-8 h-12 rounded-xl bg-[#4A1115] px-6 text-sm font-semibold text-[#FFFDF8] shadow-lg shadow-[#4A1115]/20 transition-all hover:-translate-y-1 hover:bg-[#5D171D]"
-                >
-
-                  Crear mi primera materia
-
-                  <ArrowRight className="ml-2 h-4 w-4" />
-
-                </Button>
-
-              </div>
-
-            </div>
-
-          )}
-
-
-          {/* =================================================
-              MATERIAS REALES
-          ================================================== */}
-
-          {subjects.length > 0 && (
-
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-
-              {subjects.map((subject, index) => (
-
-                <Link
-                  key={subject.id}
-                  href={`/teacher/subjects/${subject.id}`}
-                  className="group relative block overflow-hidden rounded-[1.75rem] border border-[#4A1115]/10 bg-[#FFFDF8] p-7 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-[#4A1115]/10"
-                >
-
-                  {/* Color de materia */}
-
-                  <div
-                    className="absolute left-0 top-0 h-1.5 w-full"
-                    style={{
-                      backgroundColor:
-                        subject.color || "#4A1115",
-                    }}
-                  />
-
-
-                  {/* Número */}
-
-                  <div className="flex items-start justify-between">
-
-                    <span className="text-5xl font-bold tracking-[-0.06em] text-[#4A1115]/10">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-
-
-                    {subject.abbreviation && (
-
-                      <span className="rounded-full bg-[#F7F1E7] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#687584]">
-                        {subject.abbreviation}
-                      </span>
-
-                    )}
-
-                  </div>
-
-
-                  {/* Icono */}
-
-                  <div className="mt-5 flex h-11 w-11 items-center justify-center rounded-xl bg-[#E8AFC0]/30 text-[#4A1115] transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105">
-
-                    <BookOpen className="h-5 w-5" />
-
-                  </div>
-
-
-                  {/* Información */}
-
-                  <h3 className="mt-6 text-xl font-semibold tracking-tight text-[#211719]">
-                    {subject.name}
-                  </h3>
-
-
-                  {subject.description && (
-
-                    <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#687584]">
-                      {subject.description}
-                    </p>
-
-                  )}
-
-
-                  {/* Link */}
-
-                  <div className="mt-7 flex items-center justify-between">
-
-                    <span className="text-sm font-semibold text-[#4A1115]">
-                      Abrir materia
-                    </span>
-
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#4A1115]/10 text-[#4A1115] transition-all duration-300 group-hover:bg-[#4A1115] group-hover:text-[#FFFDF8]">
-
-                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-
-                    </div>
-
-                  </div>
-
-                </Link>
-
-              ))}
-
-
-              {/* Nueva materia */}
-
               <button
                 type="button"
                 onClick={handleCreateSubject}
-                className="group flex min-h-[280px] flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-[#4A1115]/20 bg-[#FFFDF8]/50 p-7 text-center transition-all duration-300 hover:border-[#4A1115]/40 hover:bg-[#FFFDF8]"
+                className={styles.primaryButton}
               >
-
-                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-[#4A1115]/15 text-[#4A1115] transition-all duration-300 group-hover:rotate-90 group-hover:bg-[#4A1115] group-hover:text-[#FFFDF8]">
-
-                  <Plus className="h-5 w-5" />
-
-                </div>
-
-
-                <p className="mt-5 text-sm font-semibold text-[#4A1115]">
-                  Nueva materia
-                </p>
-
-
-                <p className="mt-1 max-w-[180px] text-xs leading-5 text-[#687584]">
-                  Añade otro espacio para organizar tu conocimiento.
-                </p>
-
+                <Plus size={17} /> Nueva materia <ArrowUpRight size={17} />
               </button>
-
-            </div>
-
-          )}
-
+            )}
+          </div>
+          <StudyBooks />
         </section>
-
-
-        {/* =================================================
-            FIRMA
-        ================================================== */}
-
-        <div className="mt-20 flex flex-col items-center justify-between gap-3 border-t border-[#4A1115]/10 pt-6 text-[11px] text-[#687584]/70 sm:flex-row">
-
-          <span>
-            Aura Atlas
-          </span>
-
-          <span>
-            by Tzalli Studio
-          </span>
-
-        </div>
-
+        <section
+          className={styles.academicContext}
+          aria-labelledby="context-title"
+        >
+          <div className={styles.contextHeading}>
+            <h2 id="context-title">
+              <GraduationCap size={16} /> Tu espacio académico
+            </h2>
+            <Link href="/teacher">
+              Configurar <ArrowUpRight size={13} />
+            </Link>
+          </div>
+          <dl className={styles.contextGrid}>
+            {[
+              ["Universidad", university?.name || "Selecciona tu universidad"],
+              ["Facultad", faculty?.name || "Selecciona tu facultad"],
+              ["Carrera", career?.name || "Selecciona tu carrera"],
+            ].map(([label, name]) => (
+              <div key={label}>
+                <dt>{label}</dt>
+                <dd>{name}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+        <section
+          id="materias"
+          className={styles.subjectSection}
+          aria-labelledby="subjects-title"
+        >
+          <div className={styles.sectionHeading}>
+            <h2 id="subjects-title">
+              Tus <em>materias.</em>
+            </h2>
+            <span>
+              {subjects.length}{" "}
+              {subjects.length === 1
+                ? "materia disponible"
+                : "materias disponibles"}
+            </span>
+          </div>
+          {subjects.length === 0 ? (
+            <div className={styles.emptyState}>
+              <div className={styles.emptyIcon} aria-hidden="true">
+                <BookOpen size={42} strokeWidth={1.3} />
+                <span className={styles.bookmark}>
+                  <Bookmark size={17} />
+                </span>
+              </div>
+              <div className={styles.emptyCopy}>
+                <h3>Empieza con tu primera materia.</h3>
+                <p>
+                  Añade una materia para organizar sus unidades, temas y
+                  recursos.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCreateSubject}
+                  className={styles.primaryButton}
+                >
+                  Crear mi primera materia <ArrowRight size={17} />
+                </button>
+              </div>
+              <Butterfly className={styles.emptyButterfly} />
+            </div>
+          ) : (
+            <>
+              <div className={styles.subjectGrid}>
+                {subjects.map((subject) => {
+                  const logo = subject.logoUrl
+                    ? assetUrl(subject.logoUrl)
+                    : null;
+                  return (
+                    <Link
+                      key={subject.id}
+                      href={`/teacher/subjects/${subject.id}`}
+                      className={styles.subjectCard}
+                      style={
+                        {
+                          "--subject-color": subject.color || "#4a1115",
+                          "--subject-ink": getSubjectTextColor(
+                            subject.color || "#4a1115",
+                          ),
+                        } as CSSProperties
+                      }
+                    >
+                      <div className={styles.cover} aria-hidden="true">
+                        <span className={styles.coverShape} />
+                        <span className={styles.bookCover}>
+                          {logo ? (
+                            <Image
+                              src={logo}
+                              alt=""
+                              width={60}
+                              height={60}
+                              unoptimized
+                            />
+                          ) : (
+                            <BookOpen size={30} strokeWidth={1.4} />
+                          )}
+                          {subject.abbreviation && (
+                            <span>{subject.abbreviation}</span>
+                          )}
+                        </span>
+                      </div>
+                      <div className={styles.subjectInfo}>
+                        <h3>{subject.name}</h3>
+                        {subject.description && <p>{subject.description}</p>}
+                        <div className={styles.openSubject}>
+                          <span>Abrir materia</span>
+                          <ArrowUpRight size={17} />
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={handleCreateSubject}
+                className={styles.addSubject}
+              >
+                <span>
+                  <Plus size={24} strokeWidth={1.4} />
+                </span>
+                <strong>Nueva materia</strong>
+              </button>
+            </>
+          )}
+        </section>
+        <BetaBanner />
+        <footer className={styles.footer}>
+          <span>Aura Atlas · by Tzalli Studio</span>
+          <Link href="/">
+            Volver al inicio <ArrowUpRight size={12} />
+          </Link>
+        </footer>
       </div>
-
     </main>
   );
 }

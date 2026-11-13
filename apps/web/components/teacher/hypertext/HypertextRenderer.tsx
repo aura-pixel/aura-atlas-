@@ -1,914 +1,575 @@
 "use client";
-
 import {
-  ArrowDown,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+} from "react";
+import dynamic from "next/dynamic";
+import {
+  ArrowRight,
   BookOpen,
-  ChevronRight,
-  CircleHelp,
-  Home,
+  ChevronDown,
+  Compass,
+  FileText,
+  GraduationCap,
+  Layers,
+  Map,
+  MapPin,
+  UserRound,
 } from "lucide-react";
-import { useState } from "react";
-
-import { UnitView } from "./UnitView";
-import { TopicView } from "./TopicView";
-import { MaterialViewer } from "./MaterialViewer";
-import { UnitsView } from "@/components/teacher/hypertext/UnitsView";
-
-type Material = {
-  id: string;
-  name: string;
-  type: string;
-  url: string | null;
-  mimeType?: string | null;
-  size?: number | null;
-};
-
-type Subtopic = {
-  id: string;
-  number: string;
-  title: string;
-};
-
-type Topic = {
-  id: string;
-  number: string;
-  title: string;
-  subtopics?: Subtopic[];
-  materials: Material[];
-};
-
-type Unit = {
-  id: string;
-  number: number;
-  title: string;
-  objective: string | null;
-  topics: Topic[];
-};
-
-type HypertextRendererProps = {
-  hypertext: {
-    id: string;
-    title: string;
-    description: string | null;
-    coverImageUrl: string | null;
-    primaryColor: string;
-    secondaryColor: string;
-    fontFamily: string;
-    theme: "LIGHT" | "DARK";
-
-    user: {
-      name: string;
-    };
-
-    subject: {
-      name: string;
-      abbreviation: string | null;
-      logoUrl: string | null;
-      color: string | null;
-
-      career: {
-        name: string;
-        abbreviation: string | null;
-
-        faculty: {
-          name: string;
-          abbreviation: string | null;
-
-          university: {
-            name: string;
-            abbreviation: string;
-            logoUrl: string | null;
-          };
-        };
-      };
-    };
-
-    units: Unit[];
-  };
-
+import { Butterfly } from "@/components/landing/learning-garden";
+import { API_URL, assetUrl } from "@/lib/config";
+import { patch, postForm } from "@/lib/api";
+import { getSubjectTextColor } from "@/lib/subject-colors";
+import { UnitImageEditorContext } from "./unit-image-editor-context";
+import type { AtlasHypertext, AtlasUnit } from "./atlas-types";
+import { LearningJourney } from "./LearningJourney";
+import styles from "./learning-atlas.module.css";
+const loading = () => (
+  <div className={styles.empty} role="status">
+    Preparando tu siguiente parada…
+  </div>
+);
+const UnitWorkspace = dynamic(
+  () => import("./UnitWorkspace").then((module) => module.UnitWorkspace),
+  { loading },
+);
+export type HypertextRendererProps = {
+  hypertext: AtlasHypertext;
   mode?: "editor" | "public";
+  scrollContainerId?: string;
 };
-
-type ViewState =
+type View =
   | { type: "landing" }
-  | { type: "unit"; unit: Unit }
-  | { type: "topic"; unit: Unit; topic: Topic }
-  | {
-      type: "material";
-      unit: Unit;
-      topic: Topic;
-      material: Material;
-    };
-
+  | { type: "unit"; unitId: string }
+  | { type: "topic"; unitId: string; topicId: string }
+  | { type: "material"; unitId: string; topicId: string; materialId: string };
+function imageSource(unit: AtlasUnit) {
+  if (!unit.imageUrl) return null;
+  return unit.imageUrl.startsWith("users/")
+    ? `${API_URL}/hypertexts/unit-images/${unit.id}?v=${encodeURIComponent(unit.updatedAt ?? "1")}`
+    : assetUrl(unit.imageUrl);
+}
 export function HypertextRenderer({
   hypertext,
   mode = "editor",
+  scrollContainerId,
 }: HypertextRendererProps) {
-  const [view, setView] = useState<ViewState>({
-    type: "landing",
-  });
-
-  const university =
-    hypertext.subject.career.faculty.university;
-
-  const faculty =
-    hypertext.subject.career.faculty;
-
-  const career =
-    hypertext.subject.career;
-
-  const subject =
-    hypertext.subject;
-
-  const isDark = hypertext.theme === "DARK";
-
-  const themeColors = {
-    background: isDark
-      ? "#15171C"
-      : "#FFFFFF",
-
-    foreground: isDark
-      ? "#F4F6F9"
-      : "#1E2430",
-
-    muted: isDark
-      ? "#A7AFBC"
-      : "#687584",
-
-    surface: isDark
-      ? "#1D2027"
-      : "#FFFFFF",
-
-    softSurface: isDark
-      ? "#20242C"
-      : "#F8F9FB",
-
-    border: isDark
-      ? "#303540"
-      : "#E5E7EB",
-  };
-
-  const visibleUnits = hypertext.units.filter((unit) =>
-    unit.topics.some(
-      (topic) => topic.materials.length > 0,
-    ),
+  const root = useRef<HTMLDivElement>(null),
+    menu = useRef<HTMLDivElement>(null),
+    menuButton = useRef<HTMLButtonElement>(null);
+  const [view, setView] = useState<View>({ type: "landing" });
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [images, setImages] = useState<Record<string, string | null>>({});
+  const [draftImages, setDraftImages] = useState<Record<string, string | null>>(
+    {},
   );
-
-  const getVisibleTopics = (unit: Unit) => {
-    return unit.topics.filter(
-      (topic) => topic.materials.length > 0,
-    );
-  };
-
-  const scrollToSection = (
-    sectionId: string,
-  ) => {
-    document
-      .getElementById(sectionId)
-      ?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({
+  const openImage = useContext(UnitImageEditorContext);
+  const editable = mode === "editor" && !!openImage;
+  const { subject } = hypertext;
+  const { career } = subject;
+  const { faculty } = career;
+  const { university } = faculty;
+  const dark = hypertext.theme === "DARK";
+  const units = useMemo(
+    () =>
+      hypertext.units
+        .filter(
+          (unit) => unit.topics.some((topic) => topic.materials.length > 0),
+        )
+        .map((unit) => ({
+          ...unit,
+          imageUrl: Object.prototype.hasOwnProperty.call(draftImages, unit.id)
+            ? draftImages[unit.id]
+            : Object.prototype.hasOwnProperty.call(images, unit.id)
+              ? images[unit.id]
+              : imageSource(unit),
+          topics: unit.topics.filter((topic) => topic.materials.length > 0),
+        })),
+    [hypertext.units, images, draftImages],
+  );
+  const currentUnit =
+    "unitId" in view
+      ? units.find((unit) => unit.id === view.unitId)
+      : undefined;
+  const currentTopic =
+    currentUnit && "topicId" in view
+      ? currentUnit.topics.find((topic) => topic.id === view.topicId)
+      : undefined;
+  const currentMaterial =
+    currentTopic && "materialId" in view
+      ? currentTopic.materials.find(
+          (material) => material.id === view.materialId,
+        )
+      : undefined;
+  function top() {
+    const container = scrollContainerId
+      ? document.getElementById(scrollContainerId)
+      : null;
+    (container ?? window).scrollTo({
       top: 0,
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
     });
-  };
-
-  const openUnit = (unit: Unit) => {
-    setView({
-      type: "unit",
-      unit,
-    });
-
-    scrollToTop();
-  };
-
-  const openTopic = (
-    unit: Unit,
-    topic: Topic,
-  ) => {
-    setView({
-      type: "topic",
-      unit,
-      topic,
-    });
-
-    scrollToTop();
-  };
-
-  const openMaterial = (
-    unit: Unit,
-    topic: Topic,
-    material: Material,
-  ) => {
-    setView({
-      type: "material",
-      unit,
-      topic,
-      material,
-    });
-
-    scrollToTop();
-  };
-
-  const goToLanding = () => {
-    setView({
-      type: "landing",
-    });
-
-    scrollToTop();
-  };
-
-  const goToLandingSection = (
-    sectionId: string,
-  ) => {
-    if (view.type === "landing") {
-      scrollToSection(sectionId);
-      return;
+  }
+  function go(next: View, anchor?: string, scroll = true) {
+    setView(next);
+    setMenuOpen(false);
+    if (mode === "public") {
+      const hash =
+        next.type === "landing"
+          ? anchor
+            ? `#${anchor}`
+            : ""
+          : "#" +
+            new URLSearchParams({
+              unidad: next.unitId,
+              ...("topicId" in next ? { tema: next.topicId } : {}),
+              ...("materialId" in next ? { recurso: next.materialId } : {}),
+            }).toString();
+      window.history.pushState(
+        {},
+        "",
+        window.location.pathname + window.location.search + hash,
+      );
     }
-
-    setView({
-      type: "landing",
-    });
-
+    if (!scroll) return;
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        scrollToSection(sectionId);
-      });
+      if (anchor)
+        document.getElementById(`${hypertext.id}-${anchor}`)?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
+            ? "auto"
+            : "smooth",
+          block: "start",
+        });
+      else top();
     });
-  };
-
+  }
+  useEffect(() => {
+    if (mode !== "public") return;
+    const restore = () => {
+      const hash = window.location.hash.slice(1),
+        params = new URLSearchParams(hash);
+      const unit = units.find((u) => u.id === params.get("unidad"));
+      const topic = unit?.topics.find((t) => t.id === params.get("tema"));
+      const material = topic?.materials.find(
+        (m) => m.id === params.get("recurso"),
+      );
+      setView(
+        material && topic && unit
+          ? {
+              type: "material",
+              unitId: unit.id,
+              topicId: topic.id,
+              materialId: material.id,
+            }
+          : topic && unit
+            ? { type: "topic", unitId: unit.id, topicId: topic.id }
+            : unit
+              ? { type: "unit", unitId: unit.id }
+              : { type: "landing" },
+      );
+      setMenuOpen(false);
+      requestAnimationFrame(() => {
+        if (hash === "como-usarlo" || hash === "recorrido")
+          document
+            .getElementById(`${hypertext.id}-${hash}`)
+            ?.scrollIntoView({ block: "start" });
+        else top();
+      });
+    };
+    restore();
+    window.addEventListener("popstate", restore);
+    window.addEventListener("hashchange", restore);
+    return () => {
+      window.removeEventListener("popstate", restore);
+      window.removeEventListener("hashchange", restore);
+    };
+  }, [mode, units, hypertext.id, scrollContainerId]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const outside = (event: PointerEvent) => {
+      if (!menu.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const escape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [menuOpen]);
+  function menuKeys(event: KeyboardEvent<HTMLDivElement>) {
+    const options = Array.from(
+      menu.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') ??
+        [],
+    );
+    if (!options.length) return;
+    const current = options.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
+    let next;
+    if (event.key === "ArrowDown") next = (current + 1) % options.length;
+    else if (event.key === "ArrowUp")
+      next =
+        current < 0
+          ? options.length - 1
+          : (current + options.length - 1) % options.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = options.length - 1;
+    else return;
+    event.preventDefault();
+    options[next].focus();
+  }
+  function editImage(unit: AtlasUnit) {
+    openImage?.({
+      unitId: unit.id,
+      title: `Unidad ${unit.number} · ${unit.title}`,
+      imageUrl: unit.imageUrl ?? null,
+      preview: (url) => {
+        setDraftImages((current) => {
+          const next = { ...current };
+          if (url === undefined) delete next[unit.id];
+          else next[unit.id] = url;
+          return next;
+        });
+      },
+      apply: async (imageUrl) => {
+        await patch(`/hypertexts/${hypertext.id}/units/${unit.id}/image`, {
+          imageUrl,
+        });
+        setImages((current) => ({ ...current, [unit.id]: imageUrl }));
+      },
+      upload: async (file) => {
+        const body = new FormData();
+        body.append("image", file);
+        const saved = await postForm<AtlasUnit>(
+          `/hypertexts/${hypertext.id}/units/${unit.id}/image`,
+          body,
+        );
+        setImages((current) => ({ ...current, [unit.id]: imageSource(saved) }));
+      },
+    });
+  }
+  const properties = {
+    "--accent": hypertext.primaryColor,
+    "--accent-ink": getSubjectTextColor(hypertext.primaryColor),
+    "--secondary": hypertext.secondaryColor,
+    "--page": dark ? "#1c232b" : "#f8f5ee",
+    "--surface": dark ? "#27303a" : "#fffdf8",
+    "--ink": dark ? "#f2eee7" : "#422b33",
+    "--muted": dark ? "#b5b9ba" : "#8a7680",
+    "--line": dark ? "#ffffff19" : "#4a111516",
+    "--soft": dark ? "#303945" : "#eee8e1",
+    fontFamily: hypertext.fontFamily,
+    colorScheme: dark ? "dark" : "light",
+  } as CSSProperties;
   return (
     <div
-      className="min-h-screen"
-      style={{
-        fontFamily: hypertext.fontFamily,
-        backgroundColor:
-          themeColors.background,
-        color:
-          themeColors.foreground,
-      }}
+      ref={root}
+      className={styles.atlas}
+      data-theme={dark ? "dark" : "light"}
+      style={properties}
     >
-      {/* =====================================================
-          NAVBAR
-      ====================================================== */}
-
-      <nav
-        className="sticky top-0 z-50 border-b backdrop-blur"
-        style={{
-          backgroundColor: isDark
-            ? "rgba(21, 23, 28, 0.95)"
-            : "rgba(255, 255, 255, 0.95)",
-          borderColor:
-            `${hypertext.primaryColor}20`,
-        }}
-      >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-10">
+      <nav className={styles.navbar} aria-label="Navegación del hipertexto">
+        <button
+          type="button"
+          className={styles.brand}
+          onClick={() => go({ type: "landing" })}
+        >
+          <span>
+            <BookOpen size={21} strokeWidth={1.3} />
+          </span>
+          <div>
+            <small>{university.abbreviation || "AURA ATLAS"}</small>
+            <strong>{subject.name}</strong>
+          </div>
+        </button>
+        <div className={styles.navLinks}>
           <button
             type="button"
-            onClick={goToLanding}
-            className="flex items-center gap-3"
+            aria-current={view.type === "landing" ? "page" : undefined}
+            onClick={() => go({ type: "landing" })}
           >
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl"
-              style={{
-                backgroundColor:
-                  `${hypertext.primaryColor}15`,
-                color:
-                  hypertext.primaryColor,
-              }}
-            >
-              {subject.logoUrl ? (
-                <img
-                  src={subject.logoUrl}
-                  alt=""
-                  className="h-full w-full rounded-xl object-cover"
-                />
-              ) : (
-                <BookOpen className="h-5 w-5" />
-              )}
-            </div>
-
-            <div className="hidden text-left sm:block">
-              <p
-                className="text-xs font-semibold uppercase tracking-[0.15em]"
-                style={{
-                  color:
-                    themeColors.muted,
-                }}
-              >
-                Hipertexto
-              </p>
-
-              <p
-                className="text-sm font-bold"
-                style={{
-                  color:
-                    themeColors.foreground,
-                }}
-              >
-                {subject.name}
-              </p>
-            </div>
+            Inicio
           </button>
-
-          <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => go({ type: "landing" }, "como-usarlo")}
+          >
+            Cómo usarlo
+          </button>
+          <div className={styles.unitMenu} ref={menu} onKeyDown={menuKeys}>
             <button
               type="button"
-              onClick={goToLanding}
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition"
-              style={{
-                color:
-                  themeColors.foreground,
-              }}
-              onMouseEnter={(event) => {
-                event.currentTarget.style.backgroundColor =
-                  themeColors.softSurface;
-              }}
-              onMouseLeave={(event) => {
-                event.currentTarget.style.backgroundColor =
-                  "transparent";
-              }}
+              ref={menuButton}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-controls={`${hypertext.id}-unit-menu`}
+              onClick={() => setMenuOpen(!menuOpen)}
             >
-              <Home className="h-4 w-4" />
-
-              <span className="hidden md:inline">
-                Inicio
-              </span>
+              Unidades <ChevronDown size={13} data-open={menuOpen} />
             </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                goToLandingSection(
-                  "como-funciona",
-                )
-              }
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition"
-              style={{
-                color:
-                  themeColors.foreground,
-              }}
-              onMouseEnter={(event) => {
-                event.currentTarget.style.backgroundColor =
-                  themeColors.softSurface;
-              }}
-              onMouseLeave={(event) => {
-                event.currentTarget.style.backgroundColor =
-                  "transparent";
-              }}
-            >
-              <CircleHelp className="h-4 w-4" />
-
-              <span className="hidden md:inline">
-                Cómo funciona
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                goToLandingSection("unidades")
-              }
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition"
-              style={{
-                color:
-                  themeColors.foreground,
-              }}
-              onMouseEnter={(event) => {
-                event.currentTarget.style.backgroundColor =
-                  themeColors.softSurface;
-              }}
-              onMouseLeave={(event) => {
-                event.currentTarget.style.backgroundColor =
-                  "transparent";
-              }}
-            >
-              <BookOpen className="h-4 w-4" />
-
-              <span className="hidden md:inline">
-                Unidades
-              </span>
-            </button>
+            {menuOpen && (
+              <div
+                role="menu"
+                id={`${hypertext.id}-unit-menu`}
+                className={styles.unitDropdown}
+              >
+                <span className={styles.eyebrow}>
+                  ELIGE TU SIGUIENTE PARADA
+                </span>
+                {units.map((unit) => (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    key={unit.id}
+                    aria-current={
+                      currentUnit?.id === unit.id ? "page" : undefined
+                    }
+                    onClick={() => go({ type: "unit", unitId: unit.id })}
+                  >
+                    <span>{String(unit.number).padStart(2, "0")}</span>
+                    <div>
+                      <small>Unidad {unit.number}</small>
+                      <strong>{unit.title}</strong>
+                    </div>
+                    <ArrowRight size={13} />
+                  </button>
+                ))}
+                {!units.length && <p>Todavía no hay unidades disponibles.</p>}
+              </div>
+            )}
           </div>
         </div>
       </nav>
-
-      {/* =====================================================
-          MATERIAL
-      ====================================================== */}
-
-      {view.type === "material" && (
-        <MaterialViewer
-          material={view.material}
-          onBack={() =>
-            setView({
-              type: "topic",
-              unit: view.unit,
-              topic: view.topic,
-            })
-          }
-          primaryColor={
-            hypertext.primaryColor
-          }
-          secondaryColor={
-            hypertext.secondaryColor
-          }
+      {view.type === "landing" ? (
+        <>
+          <header className={styles.hero}>
+            <div className={styles.heroCopy}>
+              <span className={styles.eyebrow}>
+                <GraduationCap size={14} /> UN ATLAS PARA TU APRENDIZAJE
+              </span>
+              <h1>{subject.name}</h1>
+              <p className={styles.intro}>
+                {hypertext.description ||
+                  `Una invitación a explorar los temas de ${subject.name}, descubrir nuevas ideas y conectar lo que aprendes con sus materiales.`}
+              </p>
+              <span className={styles.author}>
+                <UserRound size={14} /> Un hipertexto de{" "}
+                <strong>{hypertext.user.name}</strong>
+              </span>
+              <button
+                type="button"
+                className={styles.primary}
+                onClick={() => go({ type: "landing" }, "recorrido")}
+              >
+                Explorar el recorrido <ArrowRight size={16} />
+              </button>
+            </div>
+            <div className={styles.heroArt}>
+              {hypertext.coverImageUrl ? (
+                <img
+                  src={assetUrl(hypertext.coverImageUrl)}
+                  alt={`Portada de ${subject.name}`}
+                  decoding="async"
+                  className={styles.coverImage}
+                />
+              ) : (
+                <div className={styles.coverBook}>
+                  <BookOpen size={42} strokeWidth={1.1} />
+                  <span>EXPLORA · CONECTA · APRENDE</span>
+                  <strong>{subject.name}</strong>
+                  <i />
+                </div>
+              )}
+              <Butterfly className={styles.butterfly} />
+              <span className={styles.artLabel}>
+                <Compass size={13} /> Cada idea abre un camino.
+              </span>
+            </div>
+          </header>
+          <section
+            className={styles.academicIdentity}
+            aria-label="Contexto académico"
+          >
+            <dl>
+              <div>
+                <dt>Universidad</dt>
+                <dd>{university.name}</dd>
+              </div>
+              <div>
+                <dt>Facultad</dt>
+                <dd>{faculty.name}</dd>
+              </div>
+              <div>
+                <dt>Carrera</dt>
+                <dd>{career.name}</dd>
+              </div>
+              <div>
+                <dt>Materia</dt>
+                <dd>{subject.name}</dd>
+              </div>
+            </dl>
+          </section>
+          {hypertext.academicStructure?.subjectObjective && (
+            <section className={styles.subjectObjective}>
+              <span className={styles.eyebrow}>LO QUE VAS A APRENDER</span>
+              <p>{hypertext.academicStructure.subjectObjective}</p>
+            </section>
+          )}
+          <section className={styles.guide} id={`${hypertext.id}-como-usarlo`}>
+            <div className={styles.sectionHeading}>
+              <span className={styles.eyebrow}>
+                ANTES DE EMPRENDER EL VIAJE
+              </span>
+              <h2>
+                Un recorrido, <em>a tu ritmo.</em>
+              </h2>
+              <p>
+                No tienes que seguir una sola ruta. Puedes volver a los temas y
+                consultar los recursos cuando los necesites.
+              </p>
+            </div>
+            <div className={styles.guideGrid}>
+              {[
+                {
+                  icon: Map,
+                  title: "Elige una unidad",
+                  text: "Usa el mapa o abre el menú Unidades para encontrar por dónde empezar.",
+                },
+                {
+                  icon: Layers,
+                  title: "Explora sus temas",
+                  text: "Descubre los objetivos de cada unidad y abre el tema que quieras consultar.",
+                },
+                {
+                  icon: FileText,
+                  title: "Conecta con sus recursos",
+                  text: "Lee, mira o escucha sus materiales. Vuelve a la unidad para seguir explorando.",
+                },
+              ].map((item, index) => (
+                <article key={item.title}>
+                  <div>
+                    <item.icon size={23} strokeWidth={1.3} />
+                    <span>0{index + 1}</span>
+                  </div>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+          <section
+            className={styles.mapSection}
+            id={`${hypertext.id}-recorrido`}
+          >
+            <div className={styles.sectionHeading}>
+              <span className={styles.eyebrow}>
+                <MapPin size={13} /> TU MAPA DE CONOCIMIENTO
+              </span>
+              <h2>
+                Cada unidad, <em>un lugar por descubrir.</em>
+              </h2>
+              <p>Elige un marcador y comienza a explorar.</p>
+            </div>
+            <LearningJourney
+              units={units}
+              onOpen={(unit) => go({ type: "unit", unitId: unit.id })}
+              onImage={editable ? editImage : undefined}
+            />
+          </section>
+        </>
+      ) : currentUnit ? (
+        <UnitWorkspace
+          key={currentUnit.id}
+          unit={currentUnit}
+          topic={currentTopic}
+          material={currentMaterial}
           theme={hypertext.theme}
-        />
-      )}
-
-      {/* =====================================================
-          TEMA
-      ====================================================== */}
-
-      {view.type === "topic" && (
-  <TopicView
-    topic={view.topic}
-    unit={view.unit}
-    subjectName={subject.name}
-    onBack={() =>
-      setView({
-        type: "unit",
-        unit: view.unit,
-      })
-    }
-    onMaterialSelect={(material) =>
-      openMaterial(
-        view.unit,
-        view.topic,
-        material,
-      )
-    }
-    primaryColor={
-      hypertext.primaryColor
-    }
-    secondaryColor={
-      hypertext.secondaryColor
-    }
-  />
-)}
-
-      {/* =====================================================
-          UNIDAD
-      ====================================================== */}
-
-      {view.type === "unit" && (
-        <UnitView
-          unit={{
-            ...view.unit,
-            topics: getVisibleTopics(
-              view.unit,
-            ),
-          }}
-          subjectName={subject.name}
-          onBack={() =>
-            goToLandingSection("unidades")
-          }
-          onTopicSelect={(topic) =>
-            openTopic(
-              view.unit,
-              topic,
+          onBack={() => go({ type: "landing" }, "recorrido")}
+          onTopic={(topic) =>
+            go(
+              { type: "topic", unitId: currentUnit.id, topicId: topic.id },
+              undefined,
+              false,
             )
           }
-          primaryColor={
-            hypertext.primaryColor
+          onMaterial={(topic, material) =>
+            go(
+              {
+                type: "material",
+                unitId: currentUnit.id,
+                topicId: topic.id,
+                materialId: material.id,
+              },
+              undefined,
+              false,
+            )
           }
-          secondaryColor={
-            hypertext.secondaryColor
-          }
-          theme={hypertext.theme}
+          onImage={editable ? () => editImage(currentUnit) : undefined}
         />
+      ) : (
+        <div className={styles.empty}>
+          Esta parte del recorrido no está disponible.
+          <button type="button" onClick={() => go({ type: "landing" })}>
+            Volver al inicio
+          </button>
+        </div>
       )}
-
-      {/* =====================================================
-          LANDING
-      ====================================================== */}
-
-      {view.type === "landing" && (
-        <>
-          {/* =====================================================
-              HERO
-          ====================================================== */}
-
-          <section
-            id="inicio"
-            className="scroll-mt-20"
-          >
-            <div
-              className="relative overflow-hidden"
-              style={{
-                background: `linear-gradient(
-                  135deg,
-                  ${hypertext.primaryColor}18,
-                  ${hypertext.secondaryColor}20
-                )`,
-              }}
+      <footer className={styles.footer}>
+        <div className={styles.footerMain}>
+          <div>
+            <BookOpen size={27} strokeWidth={1.2} />
+            <h2>{subject.name}</h2>
+            <p>
+              Creado por <strong>{hypertext.user.name}</strong>
+            </p>
+          </div>
+          <div>
+            <span className={styles.eyebrow}>UN ESPACIO PARA APRENDER</span>
+            <p>
+              {university.name}
+              <br />
+              {faculty.name}
+              <br />
+              {career.name}
+            </p>
+          </div>
+          <div className={styles.footerLinks}>
+            <button type="button" onClick={() => go({ type: "landing" })}>
+              Inicio
+            </button>
+            <button
+              type="button"
+              onClick={() => go({ type: "landing" }, "como-usarlo")}
             >
-              <div className="mx-auto grid max-w-7xl gap-12 px-6 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-10 lg:py-28">
-                <div className="flex flex-col justify-center">
-                  <div
-                    className="flex flex-wrap items-center gap-2 text-sm"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    <span>
-                      {university.name}
-                    </span>
-
-                    <ChevronRight className="h-4 w-4" />
-
-                    <span>
-                      {faculty.name}
-                    </span>
-
-                    <ChevronRight className="h-4 w-4" />
-
-                    <span>
-                      {career.name}
-                    </span>
-                  </div>
-
-                  <p
-                    className="mt-8 text-sm font-bold uppercase tracking-[0.18em]"
-                    style={{
-                      color:
-                        hypertext.primaryColor,
-                    }}
-                  >
-                    {subject.abbreviation ??
-                      "Materia"}
-                  </p>
-
-                  <h1
-                    className="mt-3 text-4xl font-bold tracking-[-0.04em] sm:text-5xl lg:text-6xl"
-                    style={{
-                      color:
-                        themeColors.foreground,
-                    }}
-                  >
-                    {hypertext.title}
-                  </h1>
-
-                  {hypertext.description && (
-                    <p
-                      className="mt-6 max-w-2xl text-base leading-8"
-                      style={{
-                        color:
-                          themeColors.muted,
-                      }}
-                    >
-                      {hypertext.description}
-                    </p>
-                  )}
-
-                  <p
-                    className="mt-6 text-sm"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Elaborado por:{" "}
-                    <span
-                      className="font-semibold"
-                      style={{
-                        color:
-                          themeColors.foreground,
-                      }}
-                    >
-                      {hypertext.user.name}
-                    </span>
-                  </p>
-
-                  <div className="mt-8">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        scrollToSection(
-                          "unidades",
-                        )
-                      }
-                      className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
-                      style={{
-                        backgroundColor:
-                          hypertext.primaryColor,
-                      }}
-                    >
-                      Comenzar
-
-                      <ArrowDown className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center">
-                  <div
-                    className="aspect-[4/3] w-full max-w-xl overflow-hidden rounded-[2rem] border shadow-sm"
-                    style={{
-                      backgroundColor:
-                        themeColors.surface,
-                      borderColor:
-                        `${hypertext.primaryColor}20`,
-                    }}
-                  >
-                    {hypertext.coverImageUrl ? (
-                      <img
-                        src={
-                          hypertext.coverImageUrl
-                        }
-                        alt={`Portada de ${hypertext.title}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div
-                        className="flex h-full min-h-[300px] items-center justify-center"
-                        style={{
-                          background: `linear-gradient(
-                            135deg,
-                            ${hypertext.primaryColor}20,
-                            ${hypertext.secondaryColor}30
-                          )`,
-                        }}
-                      >
-                        <BookOpen
-                          className="h-16 w-16"
-                          style={{
-                            color:
-                              hypertext.primaryColor,
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* =====================================================
-              CÓMO FUNCIONA
-          ====================================================== */}
-
-          <section
-            id="como-funciona"
-            className="scroll-mt-20"
-          >
-            <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10 lg:py-28">
-              <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-                <div>
-                  <p
-                    className="text-sm font-bold uppercase tracking-[0.18em]"
-                    style={{
-                      color:
-                        hypertext.primaryColor,
-                    }}
-                  >
-                    Cómo funciona
-                  </p>
-
-                  <h2
-                    className="mt-3 text-3xl font-bold tracking-[-0.03em] sm:text-4xl"
-                    style={{
-                      color:
-                        themeColors.foreground,
-                    }}
-                  >
-                    Explora tu materia de una forma diferente.
-                  </h2>
-
-                  <p
-                    className="mt-6 max-w-xl text-base leading-8"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Este hipertexto organiza los
-                    contenidos de la materia en una
-                    experiencia visual, para que puedas
-                    recorrer las unidades, consultar
-                    los temas y acceder a sus
-                    materiales.
-                  </p>
-                </div>
-
-                <div
-                  className="rounded-[2rem] p-8"
-                  style={{
-                    backgroundColor:
-                      `${hypertext.secondaryColor}18`,
-                  }}
-                >
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl"
-                    style={{
-                      backgroundColor:
-                        themeColors.surface,
-                    }}
-                  >
-                    <CircleHelp
-                      className="h-6 w-6"
-                      style={{
-                        color:
-                          hypertext.primaryColor,
-                      }}
-                    />
-                  </div>
-
-                  <h3
-                    className="mt-6 text-xl font-bold"
-                    style={{
-                      color:
-                        themeColors.foreground,
-                    }}
-                  >
-                    Conoce cómo funciona
-                  </h3>
-
-                  <p
-                    className="mt-2 text-sm leading-7"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Aprende rápidamente cómo navegar
-                    por este hipertexto y aprovechar sus
-                    recursos.
-                  </p>
-
-                  <button
-                    type="button"
-                    className="mt-6 rounded-xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
-                    style={{
-                      backgroundColor:
-                        themeColors.surface,
-                      color:
-                        hypertext.primaryColor,
-                    }}
-                  >
-                    Ver explicación
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* =====================================================
-              UNIDADES / RECORRIDO
-          ====================================================== */}
-
-          <section
-  id="unidades"
-  className="scroll-mt-20"
->
-  <UnitsView
-    hypertextId={hypertext.id}
-    units={hypertext.units}
-    subjectName={subject.name}
-    primaryColor={
-      hypertext.primaryColor
-    }
-    secondaryColor={
-      hypertext.secondaryColor
-    }
-    onUnitSelect={openUnit}
-  />
-</section>
-
-          {/* =====================================================
-              FOOTER
-          ====================================================== */}
-
-          <footer
-            className="border-t"
-            style={{
-              borderColor:
-                `${hypertext.primaryColor}20`,
-            }}
-          >
-            <div className="mx-auto grid max-w-7xl gap-10 px-6 py-12 md:grid-cols-2 lg:px-10">
-              <div>
-                <p
-                  className="text-sm font-bold"
-                  style={{
-                    color:
-                      themeColors.foreground,
-                  }}
-                >
-                  {university.name}
-                </p>
-
-                <p
-                  className="mt-2 text-sm"
-                  style={{
-                    color:
-                      themeColors.muted,
-                  }}
-                >
-                  {faculty.name}
-                </p>
-
-                <p
-                  className="text-sm"
-                  style={{
-                    color:
-                      themeColors.muted,
-                  }}
-                >
-                  {career.name}
-                </p>
-
-                <p
-                  className="mt-4 text-sm"
-                  style={{
-                    color:
-                      themeColors.muted,
-                  }}
-                >
-                  {subject.name}
-                </p>
-
-                <p
-                  className="mt-1 text-sm"
-                  style={{
-                    color:
-                      themeColors.muted,
-                  }}
-                >
-                  Elaborado por{" "}
-                  {hypertext.user.name}
-                </p>
-              </div>
-
-              <div className="md:text-right">
-                <p
-                  className="text-sm font-semibold"
-                  style={{
-                    color:
-                      themeColors.foreground,
-                  }}
-                >
-                  Navegación
-                </p>
-
-                <div className="mt-3 flex flex-wrap gap-4 md:justify-end">
-                  <button
-                    type="button"
-                    onClick={goToLanding}
-                    className="text-sm transition"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Inicio
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      goToLandingSection(
-                        "como-funciona",
-                      )
-                    }
-                    className="text-sm transition"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Cómo funciona
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      goToLandingSection(
-                        "unidades",
-                      )
-                    }
-                    className="text-sm transition"
-                    style={{
-                      color:
-                        themeColors.muted,
-                    }}
-                  >
-                    Unidades
-                  </button>
-                </div>
-              </div>
-            </div>
-          </footer>
-        </>
-      )}
+              Cómo usarlo
+            </button>
+            <button
+              type="button"
+              onClick={() => go({ type: "landing" }, "recorrido")}
+            >
+              Ver recorrido
+            </button>
+          </div>
+        </div>
+        <div className={styles.footerBottom}>
+          <span>Hecho con Aura Atlas</span>
+          <span>Explorar también es aprender.</span>
+        </div>
+      </footer>
     </div>
   );
 }

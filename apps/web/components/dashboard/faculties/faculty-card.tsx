@@ -20,7 +20,7 @@ export function FacultyCard({
 }: FacultyCardProps) {
   const facultyColor = faculty.color ?? "#7D5DFF";
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const baseUrl = "/api/backend";
 
   const logoSrc = faculty.logoUrl
     ? faculty.logoUrl.startsWith("http")

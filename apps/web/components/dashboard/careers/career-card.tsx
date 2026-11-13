@@ -20,7 +20,7 @@ export function CareerCard({
 }: CareerCardProps) {
   const careerColor = career.color ?? "#7D5DFF";
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const baseUrl = "/api/backend";
 
   const logoSrc = career.logoUrl
     ? career.logoUrl.startsWith("http")

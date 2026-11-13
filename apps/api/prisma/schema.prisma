@@ -22,9 +22,45 @@ model User {
 
   requests         UniversityRequest[]
   careers          UserCareer[]
+  sessions         Session[]
+  emailVerified    Boolean @default(false)
+  emailVerificationDeadline DateTime @default(dbgenerated("(CURRENT_TIMESTAMP + '5 days'::interval)"))
+  emailTokens      EmailToken[]
+  subjectProfiles  SubjectProfile[]
+}
+
+model Session {
+  id String @id @default(cuid())
+  userId String
+  passwordHash String
+  expiresAt DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([expiresAt])
+}
+
+model EmailToken {
+  hash String @id
+  userId String
+  expiresAt DateTime
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PendingUpload {
+  id String @id @default(cuid())
+  userId String
+  subjectId String
+  key String @unique
+  name String
+  mimeType String
+  size Int
+  expiresAt DateTime
+  consumed Boolean @default(false)
+  @@index([userId, expiresAt])
 }
 
 model University {
+  approvalStatus RequestStatus @default(APPROVED)
+  createdById String?
   id           String    @id @default(cuid())
   name         String
   abbreviation String
@@ -33,9 +69,12 @@ model University {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   faculties    Faculty[]
+  requests UniversityRequest[]
 }
 
 model Faculty {
+  approvalStatus RequestStatus @default(APPROVED)
+  createdById String?
   id           String     @id @default(cuid())
   name         String
   abbreviation String?
@@ -77,10 +116,39 @@ model Subject {
   updatedAt    DateTime  @updatedAt
 
   hypertexts   Hypertext[]
+  profiles     SubjectProfile[]
   career       Career    @relation(fields: [careerId], references: [id], onDelete: Cascade)
 }
 
+// The shared Subject supplies defaults. Only the owning teacher can change
+// these overrides; null means that the field still inherits its shared value.
+model SubjectProfile {
+  id           String   @id @default(cuid())
+  userId       String
+  subjectId    String
+  name         String?
+  abbreviation String?
+  description  String?
+  logoUrl      String?
+  color        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject      Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId])
+  @@index([subjectId])
+}
+
 model UniversityRequest {
+  kind InstitutionRequestKind @default(UNIVERSITY)
+  abbreviation String?
+  reviewNotes String?
+  universityId String?
+  facultyId String?
+  careerId String?
+  university University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
   id             String        @id @default(cuid())
   userId         String
   universityName String
@@ -244,6 +312,12 @@ enum TeacherType {
 enum RequestStatus {
   PENDING
   APPROVED
+  REJECTED
+}
+
+enum InstitutionRequestKind {
+  UNIVERSITY
+  FACULTY
 }
 
 enum HypertextTheme {

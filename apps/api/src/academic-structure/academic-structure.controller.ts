@@ -1,3 +1,4 @@
+import { pdfUpload, UploadConcurrency } from '../security/uploads';
 import {
   Controller,
   Post,
@@ -5,61 +6,43 @@ import {
   UseInterceptors,
   BadRequestException,
   UseGuards,
-} from "@nestjs/common";
+} from '@nestjs/common';
 
-import {
-  FileInterceptor,
-} from "@nestjs/platform-express";
+import { FileInterceptor } from '@nestjs/platform-express';
 
-import { AuthGuard } from "@nestjs/passport";
+import { AuthGuard } from '@nestjs/passport';
 
-import { PdfTextExtractor } from "./extractors/pdf-text.extractor";
-import { AcademicStructureParser } from "./parsers/academic-structure.parser";
+import { PdfTextExtractor } from './extractors/pdf-text.extractor';
+import { AcademicStructureParser } from './parsers/academic-structure.parser';
 
-@Controller("academic-structure")
+@Controller('academic-structure')
 export class AcademicStructureController {
   constructor(
     private readonly pdfTextExtractor: PdfTextExtractor,
     private readonly structureParser: AcademicStructureParser,
   ) {}
 
-  @Post("analyze")
-  @UseGuards(AuthGuard("jwt"))
-  @UseInterceptors(
-    FileInterceptor("file"),
-  )
+  @Post('analyze')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(UploadConcurrency, FileInterceptor('file', pdfUpload))
   async analyze(
     @UploadedFile()
     file: Express.Multer.File,
   ) {
     if (!file) {
-      throw new BadRequestException(
-        "Debes subir un archivo PDF.",
-      );
+      throw new BadRequestException('Debes subir un archivo PDF.');
     }
 
-    if (
-      file.mimetype !==
-      "application/pdf"
-    ) {
-      throw new BadRequestException(
-        "El archivo debe ser un PDF.",
-      );
+    if (file.buffer.subarray(0, 5).toString() !== '%PDF-') {
+      throw new BadRequestException('El archivo debe ser un PDF.');
     }
 
-    const extracted =
-      await this.pdfTextExtractor.extract(
-        file.buffer,
-      );
+    const extracted = await this.pdfTextExtractor.extract(file.buffer);
 
-    const structure =
-      this.structureParser.parse(
-        extracted.text,
-      );
+    const structure = this.structureParser.parse(extracted.text);
 
     return {
-      totalPages:
-        extracted.totalPages,
+      totalPages: extracted.totalPages,
 
       structure,
     };

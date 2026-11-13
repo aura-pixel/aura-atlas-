@@ -1,9 +1,9 @@
-import { Module } from "@nestjs/common";
+import { Module } from '@nestjs/common';
 
-import { PrismaModule } from "../prisma/prisma.module";
+import { PrismaModule } from '../prisma/prisma.module';
 
-import { UniversityRequestsController } from "./university-requests.controller";
-import { UniversityRequestsService } from "./university-requests.service";
+import { UniversityRequestsController } from './university-requests.controller';
+import { UniversityRequestsService } from './university-requests.service';
 
 @Module({
   imports: [PrismaModule],

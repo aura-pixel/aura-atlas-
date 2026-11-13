@@ -1,20 +1,15 @@
-import {
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { visibleFaculties } from '../security/university-visibility';
+import { privateUser } from '../security/access';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { RegisterDto } from "../auth/dto/register.dto";
-import { PrismaService } from "../prisma/prisma.service";
+import { RegisterDto } from '../auth/dto/register.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    registerDto: RegisterDto,
-  ) {
+  async create(registerDto: RegisterDto) {
     return this.prisma.user.create({
       data: {
         name: registerDto.name,
@@ -25,9 +20,7 @@ export class UsersService {
     });
   }
 
-  async findByEmail(
-    email: string,
-  ) {
+  async findByEmail(email: string) {
     return this.prisma.user.findUnique({
       where: {
         email,
@@ -52,15 +45,15 @@ export class UsersService {
     });
   }
 
-  async findById(
-    id: string,
-  ) {
+  async findById(id: string) {
     return this.prisma.user.findUnique({
       where: {
         id,
       },
-      include: {
+      select: {
+        ...privateUser,
         careers: {
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
           include: {
             career: {
               include: {
@@ -79,46 +72,41 @@ export class UsersService {
     });
   }
 
-  async setCareer(
-  userId: string,
-  careerId: string,
-) {
-  const career =
-    await this.prisma.career.findUnique({
+  async setCareer(userId: string, careerId: string) {
+    const career = await this.prisma.career.findFirst({
       where: {
         id: careerId,
+        faculty: visibleFaculties({ id: userId, role: 'TEACHER' }),
       },
     });
 
-  if (!career) {
-    throw new NotFoundException(
-      "La carrera seleccionada no existe.",
-    );
-  }
+    if (!career) {
+      throw new NotFoundException('La carrera seleccionada no existe.');
+    }
 
-  return this.prisma.userCareer.upsert({
-    where: {
-      userId_careerId: {
+    return this.prisma.userCareer.upsert({
+      where: {
+        userId_careerId: {
+          userId,
+          careerId,
+        },
+      },
+      update: {},
+      create: {
         userId,
         careerId,
       },
-    },
-    update: {},
-    create: {
-      userId,
-      careerId,
-    },
-    include: {
-      career: {
-        include: {
-          faculty: {
-            include: {
-              university: true,
+      include: {
+        career: {
+          include: {
+            faculty: {
+              include: {
+                university: true,
+              },
             },
           },
         },
       },
-    },
-  });
-}
+    });
+  }
 }

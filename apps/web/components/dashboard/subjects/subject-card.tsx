@@ -18,7 +18,7 @@ export function SubjectCard({
 }: SubjectCardProps) {
   const subjectColor = subject.color ?? "#7D5DFF";
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const baseUrl = "/api/backend";
 
   const logoSrc = subject.logoUrl
     ? subject.logoUrl.startsWith("http")

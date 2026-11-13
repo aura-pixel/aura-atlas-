@@ -1,0 +1,846 @@
+.page {
+  --wine: #4a1115;
+  --paper: #fffdf8;
+  --pink: #e8afc0;
+  --blue: #8b9aaa;
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 0 44px;
+  background: #f7f1e7;
+  color: var(--wine);
+}
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+.page a {
+  text-decoration: none;
+}
+.page a:focus-visible {
+  outline: 2px solid var(--wine);
+  outline-offset: 6px;
+}
+.page em {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-weight: 400;
+}
+.background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(#4a11150c 0.65px, transparent 0.65px);
+  background-size: 7px 7px;
+}
+.pinkCloud,
+.blueCloud {
+  position: absolute;
+  width: 650px;
+  height: 600px;
+  border-radius: 38% 62% 56% 44%;
+  filter: blur(70px);
+}
+.pinkCloud {
+  top: -250px;
+  left: -200px;
+  background: #e8afc05c;
+}
+.blueCloud {
+  top: 250px;
+  right: -260px;
+  background: #8b9aaa30;
+}
+.meadow {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 230px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 1320px;
+  padding: 26px 0;
+  margin: auto;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.7px;
+}
+.brand img {
+  object-fit: contain;
+}
+.brand small {
+  display: block;
+  font-size: 6px;
+  letter-spacing: 1.8px;
+  font-weight: 500;
+  margin-top: 3px;
+}
+.backLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b7176;
+  font-size: 11px;
+  transition: color 0.2s;
+}
+.backLink:hover {
+  color: var(--wine);
+}
+.content {
+  width: 100%;
+  max-width: 1160px;
+  margin: auto;
+  padding: 20px 0 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.chapter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 5px 17px;
+  font-size: 7px;
+  letter-spacing: 1.7px;
+  color: #94777c;
+}
+.chapter > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.chapter > span:first-child {
+  color: var(--wine);
+}
+.statusDot {
+  width: 5px;
+  height: 5px;
+  background: var(--wine);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #e8afc042;
+}
+.glass {
+  border: 1px solid #ffffffdf;
+  background: #fffdf875;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 26px;
+  box-shadow:
+    0 25px 80px #4a111509,
+    inset 0 1px 0 white;
+  animation: arrive 0.8s both;
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1.12fr 1fr;
+  align-items: center;
+  padding: 43px 42px 34px 48px;
+  gap: 10px;
+}
+.copy {
+  position: relative;
+  z-index: 2;
+}
+.welcomeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  background: #e8afc02b;
+  border: 1px solid #4a111512;
+  border-radius: 30px;
+  font-size: 7px;
+  letter-spacing: 1.3px;
+}
+.copy h1 {
+  font-weight: 500;
+  font-size: clamp(37px, 3.5vw, 51px);
+  letter-spacing: -1.9px;
+  line-height: 1.13;
+  margin: 23px 0;
+}
+.copy h1 em {
+  position: relative;
+  display: inline-block;
+}
+.copy h1 em::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 7px;
+  border-bottom: 2px solid var(--pink);
+  border-radius: 50%;
+  transform: rotate(-2deg);
+}
+.copy > p {
+  max-width: 410px;
+  font-size: 12px;
+  color: #7e696c;
+  line-height: 1.95;
+}
+.nextStep {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-top: 25px;
+  max-width: 405px;
+}
+.nextIcon {
+  width: 39px;
+  height: 41px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  background: #8b9aaa1c;
+  border: 1px solid #8b9aaa30;
+  border-radius: 11px;
+}
+.nextStep strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 1px 0 6px;
+}
+.nextStep p {
+  font-size: 10px;
+  line-height: 1.9;
+  color: #8b7478;
+}
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 35px;
+  padding: 16px 21px;
+  margin-top: 27px;
+  font-size: 12px;
+  background: var(--wine);
+  color: var(--paper);
+  border-radius: 9px;
+  box-shadow: 0 5px 14px #4a111515;
+  transition:
+    transform 0.25s,
+    box-shadow 0.25s,
+    background 0.25s;
+}
+.primaryButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 24px #4a11151a;
+  background: #68272e;
+}
+.primaryButton svg {
+  transition: transform 0.25s;
+}
+.primaryButton:hover svg {
+  transform: translate(2px, -2px);
+}
+.reassurance {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  font-size: 8px;
+  color: #9a8287;
+}
+.visual {
+  position: relative;
+  min-width: 0;
+  padding: 15px 0 25px;
+}
+.visualEyebrow {
+  position: absolute;
+  top: 5px;
+  left: 16%;
+  font-size: 6px;
+  letter-spacing: 1.7px;
+  color: #9e7b84;
+}
+.art {
+  width: 100%;
+  transform: rotate(-3deg);
+  animation: appear 1s 0.12s both;
+}
+.floatingCard {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fffdf8eb;
+  border: 1px solid #4a11151c;
+  border-radius: 10px;
+  padding: 12px 15px;
+  box-shadow: 0 7px 25px #4a111509;
+  backdrop-filter: blur(10px);
+  animation: float 7s ease-in-out infinite;
+}
+.spaceCard {
+  top: 15%;
+  left: -2%;
+  transform: rotate(-5deg);
+}
+.cardIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 36px;
+  border-radius: 8px;
+  background: #e8afc036;
+}
+.floatingCard small {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 5px;
+  letter-spacing: 1px;
+  color: #9d7b83;
+}
+.floatingCard strong {
+  font-size: 11px;
+  font-weight: 500;
+}
+.checkBadge {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1px solid #8b9aaa6b;
+  margin-left: 8px;
+  color: #73848c;
+}
+.ideaCard {
+  bottom: 15%;
+  right: -1%;
+  font-size: 9px;
+  transform: rotate(4deg);
+  animation-delay: -3s;
+}
+.ideaCard > svg {
+  color: #9d7985;
+}
+.extraButterfly {
+  position: absolute;
+  top: 12%;
+  right: 5%;
+  width: 37px;
+  animation: fly 10s ease-in-out infinite;
+}
+.caption {
+  position: absolute;
+  bottom: 15px;
+  left: 10%;
+  color: #9b737e;
+  font-family: "DM Serif Display", Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  transform: rotate(-4deg);
+}
+.journey {
+  display: grid;
+  grid-template-columns: 0.85fr 3fr;
+  gap: 25px;
+  margin: 5px 13px 13px;
+  padding: 26px 30px;
+  border: 1px solid #4a11150a;
+  border-radius: 17px;
+  background: linear-gradient(110deg, #e8afc026, #8b9aaa17);
+}
+.journeyHeading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.journeyHeading h2 {
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+  line-height: 1.35;
+}
+.journeyHeading > span {
+  font-size: 5px;
+  letter-spacing: 1.4px;
+  color: #a0858c;
+  margin-top: 12px;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 23px;
+  padding: 0;
+  list-style: none;
+}
+.steps li {
+  min-width: 0;
+  border-left: 1px solid #4a11151c;
+  padding-left: 22px;
+}
+.stepTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #8d737c;
+}
+.stepNumber {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 19px;
+  color: #a07988;
+}
+.steps h3 {
+  font-size: 10px;
+  font-weight: 500;
+  margin: 10px 0 7px;
+  line-height: 1.5;
+}
+.steps p {
+  font-size: 9px;
+  color: #927e82;
+  line-height: 1.8;
+}
+.bottomNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  font-size: 9px;
+  line-height: 1.8;
+  color: #9a7f86;
+  text-align: center;
+  padding: 19px 10px 0;
+}
+.littleFlower {
+  display: inline-block;
+  color: #b58193;
+  font-size: 20px;
+  animation: spin 40s linear infinite;
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  max-width: 1320px;
+  margin: auto;
+  padding: 17px 0 23px;
+  color: #9a8188;
+  font-size: 8px;
+}
+.footer > span {
+  font-size: 6px;
+  letter-spacing: 1.5px;
+}
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+    scale: 0.95;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -7px;
+  }
+}
+@keyframes fly {
+  0%,
+  100% {
+    translate: 0 0;
+    rotate: -12deg;
+  }
+  50% {
+    translate: 10px -15px;
+    rotate: 8deg;
+  }
+}
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@media (min-width: 1600px) {
+  .content {
+    max-width: 1220px;
+  }
+  .hero {
+    padding: 50px 50px 40px 55px;
+  }
+  .copy h1 {
+    font-size: 55px;
+  }
+  .copy > p {
+    font-size: 13px;
+  }
+  .journey {
+    padding-block: 30px;
+  }
+}
+@media (max-width: 1100px) {
+  .page {
+    padding-inline: 28px;
+  }
+  .hero {
+    padding: 34px 30px 35px;
+  }
+  .copy h1 {
+    font-size: 39px;
+    letter-spacing: -1.5px;
+  }
+  .visualEyebrow {
+    font-size: 5px;
+    letter-spacing: 1.2px;
+  }
+  .caption {
+    font-size: 12px;
+    left: 5%;
+  }
+  .floatingCard {
+    padding: 10px;
+    gap: 7px;
+  }
+  .spaceCard {
+    left: -5%;
+  }
+  .floatingCard strong {
+    font-size: 10px;
+  }
+  .floatingCard small {
+    font-size: 4.5px;
+    letter-spacing: 0.5px;
+  }
+  .cardIcon {
+    width: 29px;
+    height: 31px;
+  }
+  .journey {
+    grid-template-columns: 0.8fr 3fr;
+    padding: 23px;
+    gap: 15px;
+  }
+  .journeyHeading h2 {
+    font-size: 16px;
+  }
+  .steps {
+    gap: 15px;
+  }
+  .steps li {
+    padding-left: 16px;
+  }
+  .steps h3 {
+    font-size: 9px;
+  }
+  .steps p {
+    font-size: 8px;
+  }
+}
+@media (max-width: 760px) {
+  .page {
+    padding-inline: 22px;
+  }
+  .header {
+    padding: 20px 0;
+  }
+  .brand {
+    font-size: 19px;
+  }
+  .backLink {
+    font-size: 10px;
+  }
+  .content {
+    padding-top: 15px;
+    max-width: 560px;
+  }
+  .chapter {
+    padding-bottom: 15px;
+    font-size: 6px;
+    letter-spacing: 1.4px;
+  }
+  .chapter > span:last-child {
+    font-size: 5px;
+    letter-spacing: 1px;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 31px 32px 16px;
+  }
+  .copy h1 {
+    font-size: 43px;
+  }
+  .copy > p {
+    font-size: 12px;
+    max-width: 410px;
+  }
+  .nextStep {
+    margin-top: 22px;
+  }
+  .primaryButton {
+    margin-top: 24px;
+  }
+  .visual {
+    max-width: 380px;
+    width: 100%;
+    margin: 28px auto 0;
+    padding-bottom: 30px;
+  }
+  .visualEyebrow {
+    left: 15%;
+    font-size: 5.5px;
+  }
+  .spaceCard {
+    left: 0;
+  }
+  .ideaCard {
+    right: 0;
+  }
+  .caption {
+    left: 7%;
+    bottom: 15px;
+  }
+  .journey {
+    display: block;
+    padding: 24px;
+    margin-top: 0;
+  }
+  .journeyHeading {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 24px;
+  }
+  .journeyHeading h2 {
+    font-size: 19px;
+  }
+  .journeyHeading > span {
+    max-width: 80px;
+    font-size: 5px;
+    line-height: 1.8;
+    margin-top: 0;
+    text-align: right;
+  }
+  .steps {
+    gap: 17px;
+  }
+  .steps li:first-child {
+    padding-left: 0;
+    border: none;
+  }
+  .steps li {
+    padding-left: 16px;
+  }
+  .steps h3 {
+    font-size: 10px;
+  }
+  .steps p {
+    font-size: 9px;
+  }
+  .bottomNote {
+    font-size: 8px;
+    padding-top: 16px;
+  }
+  .footer {
+    max-width: 560px;
+    padding-block: 17px 20px;
+  }
+}
+@media (max-width: 400px) {
+  .page {
+    padding-inline: 14px;
+  }
+  .header {
+    padding: 18px 2px;
+  }
+  .brand {
+    font-size: 18px;
+    gap: 7px;
+  }
+  .brand small {
+    font-size: 5px;
+    letter-spacing: 1.3px;
+  }
+  .brand img {
+    width: 29px;
+    height: 29px;
+  }
+  .backLink {
+    font-size: 9px;
+    gap: 5px;
+  }
+  .chapter > span:last-child {
+    display: none;
+  }
+  .glass {
+    border-radius: 22px;
+  }
+  .hero {
+    padding: 28px 23px 12px;
+  }
+  .welcomeBadge {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .copy h1 {
+    font-size: clamp(33px, 10.1vw, 39px);
+    letter-spacing: -1.4px;
+  }
+  .copy > p {
+    font-size: 11px;
+  }
+  .nextStep {
+    gap: 10px;
+  }
+  .nextStep strong {
+    font-size: 11px;
+  }
+  .nextStep p {
+    font-size: 9px;
+  }
+  .primaryButton {
+    padding: 15px 18px;
+    font-size: 11px;
+    gap: 25px;
+  }
+  .reassurance {
+    font-size: 7px;
+    gap: 5px;
+  }
+  .visual {
+    margin-top: 34px;
+  }
+  .floatingCard small {
+    font-size: 4px;
+  }
+  .floatingCard strong {
+    font-size: 9px;
+  }
+  .cardIcon {
+    width: 26px;
+    height: 28px;
+  }
+  .cardIcon svg {
+    width: 16px;
+  }
+  .checkBadge {
+    margin-left: 3px;
+    width: 16px;
+    height: 16px;
+  }
+  .floatingCard {
+    padding: 9px;
+  }
+  .ideaCard {
+    font-size: 8px;
+  }
+  .caption {
+    font-size: 11px;
+    left: 2%;
+  }
+  .extraButterfly {
+    width: 27px;
+  }
+  .journey {
+    padding: 22px;
+    margin: 0 9px 9px;
+    border-radius: 14px;
+  }
+  .journeyHeading {
+    margin-bottom: 21px;
+  }
+  .journeyHeading h2 {
+    font-size: 18px;
+  }
+  .steps {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .steps li,
+  .steps li:first-child {
+    position: relative;
+    padding: 0 0 0 35px;
+    border: none;
+  }
+  .stepNumber {
+    position: absolute;
+    left: 0;
+    top: -2px;
+    font-size: 19px;
+  }
+  .stepTop {
+    position: static;
+  }
+  .stepTop > svg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15px;
+    opacity: 0.7;
+  }
+  .steps h3 {
+    font-size: 11px;
+    margin-top: 0;
+    padding-right: 20px;
+  }
+  .steps p {
+    font-size: 9px;
+    max-width: 200px;
+  }
+  .bottomNote {
+    font-size: 7px;
+    gap: 8px;
+  }
+  .footer > span {
+    font-size: 5px;
+    letter-spacing: 0.7px;
+  }
+  .footer a {
+    font-size: 7px;
+    gap: 4px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

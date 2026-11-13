@@ -256,11 +256,12 @@ function addLink() {
                 id="content-files"
                 type="file"
                 multiple
-                accept=".pdf,.pptx,.ppt,.docx,.doc,.xlsx,.xls,.jpg,.jpeg,.png,.webp"
+                accept=".pdf,.pptx,.docx,.xlsx,.jpg,.jpeg,.png,.webp,.mp3,.wav,.ogg,.mp4,.webm"
                 className="hidden"
                 onChange={(event) => {
                   const selectedFiles = Array.from(event.target.files ?? []);
 
+                  if (selectedFiles.some(file => file.size > 20*1024*1024) || files.length + selectedFiles.length > 10) { alert("Puedes subir hasta 10 archivos por carga, de máximo 20 MB cada uno."); return; }
                   setFiles((current) => [...current, ...selectedFiles]);
 
                   event.target.value = "";

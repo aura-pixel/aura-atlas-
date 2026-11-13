@@ -44,6 +44,8 @@ type TopicViewProps = {
   onMaterialSelect?: (
     material: Material,
   ) => void;
+  theme?: "LIGHT" | "DARK";
+fontFamily?: string;
 };
 
 function getMaterialIcon(type: string) {
@@ -106,9 +108,21 @@ export function TopicView({
   subjectName,
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
+  theme = "LIGHT",
+  fontFamily,
   onBack,
   onMaterialSelect,
 }: TopicViewProps) {
+  const isDark = theme === "DARK";
+
+const themeColors = {
+  background: isDark ? "#15171C" : "#F7F8FA",
+  foreground: isDark ? "#F4F6F9" : "#1E2430",
+  muted: isDark ? "#A7AFBC" : "#687584",
+  surface: isDark ? "#1D2027" : "#FFFFFF",
+  softSurface: isDark ? "#20242C" : "#F8F9FB",
+  border: isDark ? "#303540" : "#E5E7EB",
+};
   const materials = topic.materials ?? [];
   const visualMaterials = materials.filter(
   (material) => material.type?.toUpperCase() === "IMAGE",
@@ -119,7 +133,7 @@ const regularMaterials = materials.filter(
 );
 
   return (
-    <section className="relative overflow-hidden bg-white">
+    <section className="relative overflow-hidden" style={{ backgroundColor: themeColors.surface }} >
       {/* =====================================================
           HERO DEL TEMA
       ====================================================== */}

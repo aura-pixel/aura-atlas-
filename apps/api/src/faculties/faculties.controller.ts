@@ -1,3 +1,13 @@
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { Req } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AdminOnly, RolesGuard } from '../security/access';
+import {
+  logoUpload,
+  persistLogo,
+  UploadConcurrency,
+} from '../security/uploads';
 import {
   Body,
   Controller,
@@ -9,110 +19,66 @@ import {
   Query,
   UploadedFile,
   UseInterceptors,
-} from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
-import { extname } from "path";
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-import { FacultiesService } from "./faculties.service";
-import { CreateFacultyDto } from "./dto/create-faculty.dto";
-import { UpdateFacultyDto } from "./dto/update-faculty.dto";
+import { FacultiesService } from './faculties.service';
+import { CreateFacultyDto } from './dto/create-faculty.dto';
+import { UpdateFacultyDto } from './dto/update-faculty.dto';
 
-@Controller("faculties")
+@Controller('faculties')
 export class FacultiesController {
-  constructor(
-    private readonly facultiesService: FacultiesService,
-  ) {}
+  constructor(private readonly facultiesService: FacultiesService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor("logo", {
-      storage: diskStorage({
-        destination: "./uploads/faculties",
-        filename: (req, file, callback) => {
-          const uniqueName =
-            Date.now() +
-            "-" +
-            Math.round(Math.random() * 1e9);
-
-          callback(
-            null,
-            uniqueName + extname(file.originalname),
-          );
-        },
-      }),
-    }),
-  )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @AdminOnly()
+  @UseInterceptors(UploadConcurrency, FileInterceptor('logo', logoUpload))
   async create(
     @Body() dto: CreateFacultyDto,
     @UploadedFile() logo?: Express.Multer.File,
+    @Req() req?: any,
   ) {
-    const logoUrl = logo
-      ? `/uploads/faculties/${logo.filename}`
-      : undefined;
+    const logoUrl = await persistLogo(logo, 'faculties', req.user.id);
 
-    return this.facultiesService.create(
-      dto,
-      logoUrl,
-    );
+    return this.facultiesService.create(dto, logoUrl);
   }
 
   @Get()
+  @UseGuards(OptionalJwtAuthGuard)
   findAll(
-    @Query("universityId")
+    @Query('universityId')
     universityId?: string,
+    @Req() req?: any,
   ) {
-    return this.facultiesService.findAll(
-      universityId,
-    );
+    return this.facultiesService.findAll(universityId, req?.user);
   }
 
-  @Get(":id")
-  findOne(
-    @Param("id") id: string,
-  ) {
-    return this.facultiesService.findOne(id);
+  @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
+  findOne(@Param('id') id: string, @Req() req?: any) {
+    return this.facultiesService.findOne(id, req?.user);
   }
 
-  @Patch(":id")
-  @UseInterceptors(
-    FileInterceptor("logo", {
-      storage: diskStorage({
-        destination: "./uploads/faculties",
-        filename: (req, file, callback) => {
-          const uniqueName =
-            Date.now() +
-            "-" +
-            Math.round(Math.random() * 1e9);
-
-          callback(
-            null,
-            uniqueName + extname(file.originalname),
-          );
-        },
-      }),
-    }),
-  )
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @AdminOnly()
+  @UseInterceptors(UploadConcurrency, FileInterceptor('logo', logoUpload))
   async update(
-    @Param("id") id: string,
+    @Param('id') id: string,
     @Body() dto: UpdateFacultyDto,
     @UploadedFile() logo?: Express.Multer.File,
+    @Req() req?: any,
   ) {
-    const logoUrl = logo
-      ? `/uploads/faculties/${logo.filename}`
-      : undefined;
+    const logoUrl = await persistLogo(logo, 'faculties', req.user.id);
 
-    return this.facultiesService.update(
-      id,
-      dto,
-      logoUrl,
-    );
+    return this.facultiesService.update(id, dto, logoUrl);
   }
 
-  @Delete(":id")
-  remove(
-    @Param("id") id: string,
-  ) {
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @AdminOnly()
+  remove(@Param('id') id: string) {
     return this.facultiesService.remove(id);
   }
 }

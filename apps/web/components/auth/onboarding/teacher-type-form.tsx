@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { TeacherType } from "@prisma/client";
+import type { TeacherType } from "@/types/auth";
+const TeacherType = { ADJUNCT: "ADJUNCT", FULL_TIME: "FULL_TIME", OTHER: "OTHER" } as const;
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

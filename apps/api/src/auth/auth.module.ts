@@ -1,3 +1,4 @@
+import { EmailService } from './email.service';
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
@@ -23,18 +24,15 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET')!,
         signOptions: {
-          expiresIn: '7d',
+          expiresIn: '8h',
         },
       }),
     }),
   ],
 
   controllers: [AuthController],
+  exports: [JwtModule, JwtStrategy],
 
-  providers: [
-    AuthService,
-    JwtStrategy,
-    JwtAuthGuard,
-  ],
+  providers: [AuthService, EmailService, JwtStrategy, JwtAuthGuard],
 })
 export class AuthModule {}

@@ -1,5 +1,5 @@
-import { UniversitySelector } from "@/components/auth/onboarding/university-selector";
+import { redirect } from "next/navigation";
 
 export default function UniversityPage() {
-  return <UniversitySelector />;
+  redirect("/teacher");
 }

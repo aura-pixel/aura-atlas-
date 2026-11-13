@@ -1,5 +1,5 @@
-import { Onboarding } from "@/components/auth/onboarding/onboarding";
+import { redirect } from "next/navigation";
 
 export default function OnboardingPage() {
-  return <Onboarding />;
+  redirect("/teacher");
 }

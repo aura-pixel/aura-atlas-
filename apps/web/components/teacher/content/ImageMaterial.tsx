@@ -116,7 +116,7 @@ export function ImageMaterial({
             const imageUrl = image.url
               ? image.url.startsWith("http")
                 ? image.url
-                : `${API_URL}${image.url}`
+                : `${API_URL}/materials/file/${image.id}`
               : "";
 
             if (!imageUrl) return null;
@@ -181,7 +181,7 @@ export function ImageMaterial({
             src={
               selectedImage.url.startsWith("http")
                 ? selectedImage.url
-                : `${API_URL}${selectedImage.url}`
+                : `${API_URL}/materials/file/${selectedImage.id}`
             }
             alt={selectedImage.name}
             className="max-h-[90vh] max-w-[92vw] rounded-xl object-contain shadow-2xl"
