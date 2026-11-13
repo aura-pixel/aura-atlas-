@@ -191,6 +191,12 @@
   border-color: var(--trail);
 }
 .viewer {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  color: var(--ink);
+  scroll-margin-top: 125px;
   min-width: 0;
   border: 1px solid var(--line);
   background: var(--surface);
@@ -212,6 +218,7 @@
   min-width: 0;
 }
 .viewerHeader button {
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -225,7 +232,8 @@
   padding: 15px;
   min-width: 0;
 }
-.viewer:fullscreen {
+.viewer:fullscreen,
+.viewer:modal {
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -234,6 +242,28 @@
   overflow: auto;
   background: var(--surface);
   color: var(--ink);
+}
+.viewer:modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.viewer::backdrop {
+  background: #17121ce0;
+}
+.viewer:modal .viewerHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--surface);
+  padding-top: max(14px, env(safe-area-inset-top));
+}
+.viewer:modal .viewerBody {
+  flex: 1;
 }
 .viewer:fullscreen .viewerBody {
   flex: 1;

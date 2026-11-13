@@ -105,7 +105,38 @@ export class MaterialController {
     const material = await this.service.getMaterialById(id, userId);
     if (!material.url || /^https?:/i.test(material.url))
       throw new NotFoundException();
-    const file = await this.r2.getFile(material.url);
+    let range = req.headers.range;
+    if (range && !/^bytes=(?:\d+-\d*|-\d+)$/.test(range)) range = undefined;
+    const ifRange = req.headers['if-range'];
+    if (range && ifRange) {
+      const info = await this.r2.headFile(material.url);
+      if (ifRange !== info.ETag && ifRange !== info.LastModified?.toUTCString())
+        range = undefined;
+    }
+    const file = await this.r2
+      .getFile(material.url, range)
+      .catch(
+        async (error: {
+          name?: string;
+          $metadata?: { httpStatusCode?: number };
+        }) => {
+          if (
+            error.name === 'InvalidRange' ||
+            error.$metadata?.httpStatusCode === 416
+          ) {
+            const info = await this.r2.headFile(material.url!);
+            res.setHeader('Accept-Ranges', 'bytes');
+            res.setHeader(
+              'Content-Range',
+              `bytes */${info.ContentLength ?? 0}`,
+            );
+            res.status(416).end();
+            return null;
+          }
+          throw error;
+        },
+      );
+    if (!file) return;
     if (!file.Body) throw new NotFoundException();
     const safeInline = new Set([
       'application/pdf',
@@ -119,19 +150,52 @@ export class MaterialController {
       'video/webm',
     ]);
     const type = file.ContentType || 'application/octet-stream';
+    const extensions: Record<string, string> = {
+      'application/pdf': '.pdf',
+      'image/png': '.png',
+      'image/jpeg': '.jpg',
+      'image/webp': '.webp',
+      'audio/mpeg': '.mp3',
+      'audio/ogg': '.ogg',
+      'audio/wav': '.wav',
+      'video/mp4': '.mp4',
+      'video/webm': '.webm',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        '.docx',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+        '.pptx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        '.xlsx',
+    };
+    const extension = extensions[type] ?? '';
+    let filename = material.name || 'material';
+    if (extension && !filename.toLowerCase().endsWith(extension))
+      filename += extension;
+    const encodedName = encodeURIComponent(filename).replace(
+      /[!'()*]/g,
+      (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+    );
     res.setHeader(
       'Content-Type',
       safeInline.has(type) ? type : 'application/octet-stream',
     );
     res.setHeader(
       'Content-Disposition',
-      `${safeInline.has(type) ? 'inline' : 'attachment'}; filename="material"`,
+      `${safeInline.has(type) ? 'inline' : 'attachment'}; filename="material${extension}"; filename*=UTF-8''${encodedName}`,
     );
     res.setHeader(
       'Content-Security-Policy',
       `default-src 'none'; ${safeInline.has(type) ? '' : 'sandbox; '}frame-ancestors ${process.env.FRONTEND_URL || 'http://localhost:3001'}`,
     );
     res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Accept-Ranges', 'bytes');
+    if (file.ContentRange) {
+      res.status(206);
+      res.setHeader('Content-Range', file.ContentRange);
+    }
+    if (file.ETag) res.setHeader('ETag', file.ETag);
+    if (file.LastModified)
+      res.setHeader('Last-Modified', file.LastModified.toUTCString());
     if (file.ContentLength !== undefined)
       res.setHeader('Content-Length', String(file.ContentLength));
     const body = file.Body;

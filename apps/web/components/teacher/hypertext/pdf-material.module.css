@@ -1,0 +1,125 @@
+.pdf {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--surface, #fff);
+  color: var(--ink, #422b33);
+  border: 1px solid var(--line, #ddd);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  padding: 8px;
+  border-bottom: 1px solid var(--line, #ddd);
+  font-size: 12px;
+}
+.group {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.group input {
+  width: 42px;
+  min-height: 44px;
+  background: var(--page, #f8f5ee);
+  text-align: center;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 6px;
+  font-size: 16px;
+}
+.toolbar :is(button, a),
+.message button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 40px;
+  border-radius: 7px;
+  padding: 6px;
+  touch-action: manipulation;
+}
+.toolbar button:hover,
+.toolbar a:hover,
+.message button {
+  background: var(--soft, #eee8e1);
+}
+.toolbar button:disabled {
+  opacity: 0.35;
+}
+.message {
+  padding: 24px 18px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.message button {
+  margin-top: 15px;
+  padding: 8px 15px;
+}
+.pageArea {
+  position: relative;
+}
+.renderStatus {
+  padding: 10px;
+  font-size: 12px;
+  text-align: center;
+}
+.scroll {
+  overflow: auto;
+  max-width: 100%;
+  max-height: 75dvh;
+  padding: 12px;
+  background: #d6d4d1;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.sheet {
+  position: relative;
+  margin: auto;
+  background: white;
+  color-scheme: only light;
+  box-shadow: 0 2px 9px #0002;
+}
+.sheet canvas {
+  display: block;
+  max-width: none;
+}
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  line-height: 1;
+  text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0 0;
+}
+.textLayer > span {
+  font-size: calc(var(--text-scale-factor) * var(--font-height, 0));
+  transform: rotate(var(--rotate, 0deg)) scaleX(var(--scale-x, 1))
+    scale(var(--min-font-size-inv));
+}
+.textLayer ::selection {
+  background: #889fc366;
+}

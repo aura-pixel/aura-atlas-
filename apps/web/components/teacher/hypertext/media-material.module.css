@@ -1,0 +1,43 @@
+.media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 12px;
+  background: var(--page, #fafafb);
+  border: 1px solid var(--line, #ddd);
+  border-radius: 12px;
+}
+.media video,
+.media audio {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.media video {
+  max-height: 75dvh;
+  background: black;
+  border-radius: 8px;
+}
+.media img {
+  max-width: 100%;
+  max-height: 75dvh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.media p {
+  font-size: 14px;
+  padding: 20px 12px;
+  text-align: center;
+}
+.media a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  min-height: 40px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

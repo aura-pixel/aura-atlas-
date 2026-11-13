@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
-} from "@aws-sdk/client-s3";
+} from '@aws-sdk/client-s3';
 
 @Injectable()
 export class R2Service {
@@ -17,21 +18,14 @@ export class R2Service {
     const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
     const bucketName = process.env.R2_BUCKET_NAME;
 
-    if (
-      !accountId ||
-      !accessKeyId ||
-      !secretAccessKey ||
-      !bucketName
-    ) {
-      throw new Error(
-        "Faltan variables de entorno de Cloudflare R2.",
-      );
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+      throw new Error('Faltan variables de entorno de Cloudflare R2.');
     }
 
     this.bucketName = bucketName;
 
     this.client = new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: {
         accessKeyId,
@@ -40,11 +34,7 @@ export class R2Service {
     });
   }
 
-  async uploadFile(
-    key: string,
-    buffer: Buffer,
-    contentType: string,
-  ) {
+  async uploadFile(key: string, buffer: Buffer, contentType: string) {
     await this.client.send(
       new PutObjectCommand({
         Bucket: this.bucketName,
@@ -57,12 +47,19 @@ export class R2Service {
     return key;
   }
 
-  async getFile(key: string) {
+  async getFile(key: string, range?: string) {
     return this.client.send(
       new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
+        Range: range,
       }),
+    );
+  }
+
+  async headFile(key: string) {
+    return this.client.send(
+      new HeadObjectCommand({ Bucket: this.bucketName, Key: key }),
     );
   }
 

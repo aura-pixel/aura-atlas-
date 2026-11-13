@@ -10,7 +10,13 @@ import {
   Link as LinkIcon,
   Presentation,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { API_URL } from "@/lib/config";
+import { MediaMaterial } from "./MediaMaterial";
+const PdfMaterial = dynamic(
+  () => import("./PdfMaterial").then((module) => module.PdfMaterial),
+  { ssr: false, loading: () => <p role="status">Cargando visor PDF…</p> },
+);
 
 type Material = {
   id: string;
@@ -206,40 +212,29 @@ export function MaterialViewer({
 
 function getVideoEmbedUrl(url: string) {
   try {
-    const parsedUrl = new URL(url);
-
-    // YouTube
-    if (
-      parsedUrl.hostname === "www.youtube.com" ||
-      parsedUrl.hostname === "youtube.com"
-    ) {
-      const videoId = parsedUrl.searchParams.get("v");
-
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
+    const parsed = new URL(url);
+    if (!["http:", "https:"].includes(parsed.protocol)) return null;
+    const host = parsed.hostname.replace(/^(www\.|m\.)/, "");
+    if (host === "youtube.com" || host === "youtu.be") {
+      const segments = parsed.pathname.split("/").filter(Boolean);
+      const id =
+        host === "youtu.be"
+          ? segments[0]
+          : parsed.searchParams.get("v") ||
+            (["embed", "shorts", "live"].includes(segments[0])
+              ? segments[1]
+              : null);
+      return id && /^[a-zA-Z0-9_-]+$/.test(id)
+        ? `https://www.youtube.com/embed/${id}`
+        : null;
     }
-
-    if (parsedUrl.hostname === "youtu.be") {
-      const videoId = parsedUrl.pathname.slice(1);
-
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`;
-      }
+    if (host === "vimeo.com" || host === "player.vimeo.com") {
+      const id = parsed.pathname
+        .split("/")
+        .filter(Boolean)
+        .findLast((segment) => /^\d+$/.test(segment));
+      return id ? `https://player.vimeo.com/video/${id}` : null;
     }
-
-    // Vimeo
-    if (
-      parsedUrl.hostname === "vimeo.com" ||
-      parsedUrl.hostname === "www.vimeo.com"
-    ) {
-      const videoId = parsedUrl.pathname.split("/").filter(Boolean).pop();
-
-      if (videoId) {
-        return `https://player.vimeo.com/video/${videoId}`;
-      }
-    }
-
     return null;
   } catch {
     return null;
@@ -272,7 +267,7 @@ function MaterialContent({
   primaryColor: string;
 }) {
   const url = material.url
-    ? material.url.startsWith("http")
+    ? /^https?:\/\//i.test(material.url)
       ? material.url
       : `${API_URL}/materials/file/${material.id}`
     : "";
@@ -298,73 +293,26 @@ function MaterialContent({
                 allowFullScreen
               />
             </div>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 items-center justify-center gap-2 bg-white px-3 py-2 text-xs text-[#69526b]"
+            >
+              Abrir video original <ExternalLink size={14} />
+            </a>
           </div>
         );
       }
 
-      return (
-        <div
-          className="overflow-hidden rounded-2xl border bg-black"
-          style={{
-            borderColor: colors.border,
-          }}
-        >
-          <video src={url} controls className="mx-auto max-h-[75vh] w-full">
-            Tu navegador no puede reproducir este video.
-          </video>
-        </div>
-      );
+      return <MediaMaterial kind="VIDEO" url={url} name={material.name} />;
     }
-
     case "AUDIO":
-      return (
-        <div
-          className="rounded-2xl border p-8"
-          style={{
-            backgroundColor: colors.softSurface,
-            borderColor: colors.border,
-          }}
-        >
-          <audio src={url} controls className="w-full">
-            Tu navegador no puede reproducir este audio.
-          </audio>
-        </div>
-      );
-
+      return <MediaMaterial kind="AUDIO" url={url} name={material.name} />;
     case "IMAGE":
-      return (
-        <div
-          className="flex justify-center rounded-2xl border p-6"
-          style={{
-            backgroundColor: colors.softSurface,
-            borderColor: colors.border,
-          }}
-        >
-          <img
-            src={url}
-            alt={material.name}
-            className="max-h-[75vh] max-w-full rounded-xl object-contain"
-          />
-        </div>
-      );
-
+      return <MediaMaterial kind="IMAGE" url={url} name={material.name} />;
     case "PDF":
-      return (
-        <div
-          className="overflow-hidden rounded-2xl border"
-          style={{
-            backgroundColor: colors.softSurface,
-            borderColor: colors.border,
-          }}
-        >
-          <iframe
-            src={url}
-            referrerPolicy="no-referrer"
-            title={material.name}
-            className="h-[75vh] w-full"
-          />
-        </div>
-      );
+      return <PdfMaterial key={url} url={url} name={material.name} />;
 
     case "LINK":
     case "ARTICLE":

@@ -49,6 +49,8 @@ async function forward(
       "content-length",
       "content-range",
       "accept-ranges",
+      "etag",
+      "last-modified",
       "content-security-policy",
       "x-content-type-options",
       "retry-after",

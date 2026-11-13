@@ -43,22 +43,63 @@ export function UnitWorkspace({
   theme: "LIGHT" | "DARK";
 }) {
   const selectedTopic = topic ?? unit.topics[0];
-  const viewer = useRef<HTMLElement>(null);
+  const viewer = useRef<HTMLDialogElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
     const changed = () =>
-      setExpanded(document.fullscreenElement === viewer.current);
+      setExpanded(
+        document.fullscreenElement === viewer.current ||
+          !!viewer.current?.matches(":modal"),
+      );
     document.addEventListener("fullscreenchange", changed);
     return () => document.removeEventListener("fullscreenchange", changed);
   }, []);
+  useEffect(() => {
+    if (!expanded) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [expanded]);
+  useEffect(() => {
+    if (material && window.matchMedia("(max-width: 767px)").matches)
+      viewer.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [material?.id]);
+  function restoreViewer() {
+    viewer.current?.setAttribute("open", "");
+    setExpanded(false);
+    viewer.current
+      ?.querySelector<HTMLButtonElement>("button")
+      ?.focus({ preventScroll: true });
+  }
   async function toggleFullscreen() {
     setError("");
+    const element = viewer.current;
+    if (!element) return;
     try {
-      if (document.fullscreenElement === viewer.current)
+      if (document.fullscreenElement === element) {
         await document.exitFullscreen();
-      else await viewer.current?.requestFullscreen();
+        return;
+      }
+      if (element.matches(":modal")) {
+        element.close();
+        return;
+      }
+      if (document.fullscreenEnabled && element.requestFullscreen) {
+        try {
+          await element.requestFullscreen();
+          return;
+        } catch {
+          /* Use the in-page dialog when native fullscreen is unavailable. */
+        }
+      }
+      element.removeAttribute("open");
+      element.showModal();
+      setExpanded(true);
     } catch {
+      element.setAttribute("open", "");
       setError(
         "Tu navegador no pudo ampliar el recurso. Puedes seguir consultándolo aquí.",
       );
@@ -190,7 +231,11 @@ export function UnitWorkspace({
                 </p>
               )}
             </section>
-            <section
+            <dialog
+              open
+              role={expanded ? "dialog" : "region"}
+              aria-modal={expanded || undefined}
+              onClose={restoreViewer}
               ref={viewer}
               className={styles.viewer}
               aria-label="Visor del recurso"
@@ -231,7 +276,7 @@ export function UnitWorkspace({
                   </div>
                 )}
               </div>
-            </section>
+            </dialog>
           </>
         ) : (
           <div className={styles.placeholder}>
