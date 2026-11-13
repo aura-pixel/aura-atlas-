@@ -1,3 +1,4 @@
+import { R2Service } from '../storage/r2.service';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { Req } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
@@ -29,7 +30,10 @@ import { UpdateCareerDto } from './dto/update-career.dto';
 
 @Controller('careers')
 export class CareersController {
-  constructor(private readonly careersService: CareersService) {}
+  constructor(
+    private readonly careersService: CareersService,
+    private readonly storage: R2Service,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -40,7 +44,12 @@ export class CareersController {
     @UploadedFile() logo?: Express.Multer.File,
     @Req() req?: any,
   ) {
-    const logoUrl = await persistLogo(logo, 'careers', req.user.id);
+    const logoUrl = await persistLogo(
+      logo,
+      'careers',
+      req.user.id,
+      this.storage,
+    );
 
     return this.careersService.create(dto, logoUrl);
   }
@@ -71,7 +80,12 @@ export class CareersController {
     @UploadedFile() logo?: Express.Multer.File,
     @Req() req?: any,
   ) {
-    const logoUrl = await persistLogo(logo, 'careers', req.user.id);
+    const logoUrl = await persistLogo(
+      logo,
+      'careers',
+      req.user.id,
+      this.storage,
+    );
 
     return this.careersService.update(id, dto, logoUrl);
   }

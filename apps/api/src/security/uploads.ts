@@ -7,11 +7,13 @@ import {
   HttpException,
 } from '@nestjs/common';
 import { memoryStorage } from 'multer';
-import { mkdir, writeFile, readdir, stat } from 'fs/promises';
+import { mkdir, writeFile, readdir, stat, unlink } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 import sharp from 'sharp';
 import { finalize } from 'rxjs';
+import { R2Service } from '../storage/r2.service';
+import { publicLogoKey } from '../storage/public-logo-key';
 export const logoUpload = {
   storage: memoryStorage(),
   limits: {
@@ -34,6 +36,7 @@ export async function persistLogo(
   file: Express.Multer.File | undefined,
   folder: string,
   ownerId: string,
+  storage: R2Service,
 ) {
   if (!file) return undefined;
   let buffer: Buffer;
@@ -54,6 +57,7 @@ export async function persistLogo(
     );
   }
   const filename = `${randomUUID()}.webp`;
+  const key = publicLogoKey(folder, ownerId, filename);
   if (!/^[a-z0-9-]+$/i.test(ownerId))
     throw new BadRequestException('Usuario inválido.');
   const dir = join(process.cwd(), 'uploads', folder, ownerId);
@@ -68,6 +72,12 @@ export async function persistLogo(
   )
     throw new BadRequestException('Se alcanzó la cuota de imágenes.');
   await writeFile(join(dir, filename), buffer, { flag: 'wx' });
+  try {
+    await storage.uploadFile(key, buffer, 'image/webp');
+  } catch (error) {
+    await unlink(join(dir, filename)).catch(() => undefined);
+    throw error;
+  }
   return `/uploads/${folder}/${ownerId}/${filename}`;
 }
 export async function inspectMaterial(file: Express.Multer.File) {

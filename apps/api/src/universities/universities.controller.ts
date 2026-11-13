@@ -1,3 +1,4 @@
+import { R2Service } from '../storage/r2.service';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { Req } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
@@ -26,7 +27,10 @@ import { UpdateUniversityDto } from './dto/update-university.dto';
 
 @Controller('universities')
 export class UniversitiesController {
-  constructor(private readonly universitiesService: UniversitiesService) {}
+  constructor(
+    private readonly universitiesService: UniversitiesService,
+    private readonly storage: R2Service,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,7 +41,12 @@ export class UniversitiesController {
     @UploadedFile() logo?: Express.Multer.File,
     @Req() req?: any,
   ) {
-    const logoUrl = await persistLogo(logo, 'universities', req.user.id);
+    const logoUrl = await persistLogo(
+      logo,
+      'universities',
+      req.user.id,
+      this.storage,
+    );
 
     return this.universitiesService.create(dto, logoUrl);
   }
@@ -64,7 +73,12 @@ export class UniversitiesController {
     @UploadedFile() logo?: Express.Multer.File,
     @Req() req?: any,
   ) {
-    const logoUrl = await persistLogo(logo, 'universities', req.user.id);
+    const logoUrl = await persistLogo(
+      logo,
+      'universities',
+      req.user.id,
+      this.storage,
+    );
 
     return this.universitiesService.update(id, dto, logoUrl);
   }

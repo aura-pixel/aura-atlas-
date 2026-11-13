@@ -8,15 +8,15 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AcademicStructureModule } from '../academic-structure/academic-structure.module';
 
 import { PdfHypertextExtractor } from './extractor/pdf-hypertext.extractor';
-import { R2Service } from '../storage/r2.service';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, AcademicStructureModule],
+  imports: [AuthModule, PrismaModule, AcademicStructureModule, StorageModule],
 
   controllers: [MaterialController],
 
-  providers: [MaterialService, PdfHypertextExtractor, R2Service],
+  providers: [MaterialService, PdfHypertextExtractor],
 
-  exports: [MaterialService, R2Service],
+  exports: [MaterialService, StorageModule],
 })
 export class MaterialModule {}

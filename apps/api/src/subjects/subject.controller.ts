@@ -1,3 +1,4 @@
+import { R2Service } from '../storage/r2.service';
 import { SaveStructureDto } from '../security/dto';
 import {
   logoUpload,
@@ -32,7 +33,10 @@ import { UpdateSubjectDto } from './dto/update-subject.dto';
 @Controller('subjects')
 @UseGuards(AuthGuard('jwt'))
 export class SubjectsController {
-  constructor(private readonly subjectsService: SubjectsService) {}
+  constructor(
+    private readonly subjectsService: SubjectsService,
+    private readonly storage: R2Service,
+  ) {}
 
   // ───────────────────────────────────────────
   // Crear materia
@@ -51,7 +55,12 @@ export class SubjectsController {
         req.user.id,
         dto.careerId,
       );
-    const logoUrl = await persistLogo(logo, 'subjects', req.user.id);
+    const logoUrl = await persistLogo(
+      logo,
+      'subjects',
+      req.user.id,
+      this.storage,
+    );
 
     return this.subjectsService.create(dto, req.user, logoUrl);
   }
@@ -123,7 +132,12 @@ export class SubjectsController {
     @Req() req?: any,
   ) {
     await this.subjectsService.findOne(id, req.user);
-    const logoUrl = await persistLogo(logo, 'subjects', req.user.id);
+    const logoUrl = await persistLogo(
+      logo,
+      'subjects',
+      req.user.id,
+      this.storage,
+    );
 
     return this.subjectsService.update(id, dto, req.user, logoUrl);
   }
