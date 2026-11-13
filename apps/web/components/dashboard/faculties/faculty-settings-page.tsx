@@ -36,7 +36,7 @@ export function FacultySettingsPage({
       </Link>
 
       <EntityHero
-        image={faculty.logoUrl}
+        image={faculty.logoUrl ?? undefined}
         title={faculty.name}
         subtitle={faculty.abbreviation ?? ""}
         description="Configura y administra el contenido de esta facultad."

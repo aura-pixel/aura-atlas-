@@ -33,11 +33,13 @@ type Unit = {
 };
 
 type UnitViewProps = {
-  theme?: "LIGHT" | "DARK";
   unit: Unit;
   subjectName?: string;
   primaryColor?: string;
   secondaryColor?: string;
+  theme?: "LIGHT" | "DARK";
+  fontFamily?: string;
+  mode?: "editor" | "public";
   onBack?: () => void;
   onTopicSelect?: (topic: Topic) => void;
 };
@@ -47,9 +49,24 @@ export function UnitView({
   subjectName,
   primaryColor = "#7D5DFF",
   secondaryColor = "#5EE1E6",
+  theme = "LIGHT",
+  fontFamily,
+  mode = "public",
   onBack,
   onTopicSelect,
 }: UnitViewProps) {
+  const isDark = theme === "DARK";
+
+  const themeColors = {
+    background: isDark ? "#15171C" : "#F7F8FA",
+    foreground: isDark ? "#F4F6F9" : "#1E2430",
+    muted: isDark ? "#A7AFBC" : "#687584",
+    surface: isDark ? "#1D2027" : "#FFFFFF",
+    softSurface: isDark ? "#20242C" : "#F8F9FB",
+    border: isDark ? "#303540" : "#E5E7EB",
+    subtleText: isDark ? "#8F98A8" : "#9CA3AF",
+  };
+
   /*
    * Solamente mostramos temas que tienen materiales.
    *
@@ -59,34 +76,40 @@ export function UnitView({
    */
   const visibleTopics =
     unit.topics?.filter(
-      (topic) =>
-        topic.materials &&
-        topic.materials.length > 0,
+      (topic) => topic.materials && topic.materials.length > 0,
     ) ?? [];
 
   const materialCount = visibleTopics.reduce(
-    (total, topic) =>
-      total + (topic.materials?.length ?? 0),
+    (total, topic) => total + (topic.materials?.length ?? 0),
     0,
   );
 
   return (
-    <section className="relative overflow-hidden bg-white">
+    <section
+      className="relative overflow-hidden"
+      style={{
+        backgroundColor: themeColors.background,
+        color: themeColors.foreground,
+        fontFamily,
+      }}
+    >
       {/* =====================================================
           HERO DE LA UNIDAD
       ====================================================== */}
 
       <div
-        className="relative overflow-hidden border-b border-[#E5E7EB]"
+        className="relative overflow-hidden border-b"
         style={{
           background: `linear-gradient(
             135deg,
             ${secondaryColor}22,
             ${primaryColor}0A
           )`,
+          borderColor: themeColors.border,
         }}
       >
         {/* Decoraciones */}
+
         <div
           className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full opacity-20"
           style={{
@@ -103,21 +126,34 @@ export function UnitView({
 
         <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-10 md:pb-20 md:pt-12">
           {/* Regresar */}
+
           <button
             type="button"
             onClick={onBack}
-            className="group inline-flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-[#6B7280] transition hover:bg-white/70 hover:text-[#1E2430]"
+            className="group inline-flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium transition"
+            style={{
+              color: themeColors.muted,
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.backgroundColor =
+                themeColors.softSurface;
+              event.currentTarget.style.color = themeColors.foreground;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.backgroundColor = "transparent";
+              event.currentTarget.style.color = themeColors.muted;
+            }}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
 
-            <span>
-              Volver a unidades
-            </span>
+            <span>Volver a unidades</span>
           </button>
 
           {/* Contenido */}
+
           <div className="mt-10 grid items-center gap-10 md:grid-cols-[1fr_360px] md:gap-16">
             {/* Texto */}
+
             <div>
               {subjectName && (
                 <p
@@ -141,15 +177,23 @@ export function UnitView({
                   Unidad {unit.number}
                 </span>
 
-                <span className="text-xs font-medium text-[#9CA3AF]">
+                <span
+                  className="text-xs font-medium"
+                  style={{
+                    color: themeColors.subtleText,
+                  }}
+                >
                   {visibleTopics.length}{" "}
-                  {visibleTopics.length === 1
-                    ? "tema"
-                    : "temas"}
+                  {visibleTopics.length === 1 ? "tema" : "temas"}
                 </span>
               </div>
 
-              <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-[#1E2430] md:text-5xl">
+              <h1
+                className="mt-5 max-w-3xl text-4xl font-semibold leading-tight tracking-tight md:text-5xl"
+                style={{
+                  color: themeColors.foreground,
+                }}
+              >
                 {unit.title}
               </h1>
 
@@ -164,15 +208,27 @@ export function UnitView({
                     Objetivo de la unidad
                   </p>
 
-                  <p className="mt-3 text-sm leading-7 text-[#6B7280]">
+                  <p
+                    className="mt-3 text-sm leading-7"
+                    style={{
+                      color: themeColors.muted,
+                    }}
+                  >
                     {unit.objective}
                   </p>
                 </div>
               )}
 
               {/* Métricas */}
+
               <div className="mt-8 flex flex-wrap gap-3">
-                <div className="flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white/80 px-4 py-3">
+                <div
+                  className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+                  style={{
+                    backgroundColor: `${themeColors.surface}CC`,
+                    borderColor: themeColors.border,
+                  }}
+                >
                   <div
                     className="flex h-9 w-9 items-center justify-center rounded-xl"
                     style={{
@@ -188,11 +244,21 @@ export function UnitView({
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-[#1E2430]">
+                    <p
+                      className="text-sm font-semibold"
+                      style={{
+                        color: themeColors.foreground,
+                      }}
+                    >
                       {visibleTopics.length}
                     </p>
 
-                    <p className="text-[11px] text-[#9CA3AF]">
+                    <p
+                      className="text-[11px]"
+                      style={{
+                        color: themeColors.subtleText,
+                      }}
+                    >
                       {visibleTopics.length === 1
                         ? "Tema disponible"
                         : "Temas disponibles"}
@@ -200,7 +266,13 @@ export function UnitView({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white/80 px-4 py-3">
+                <div
+                  className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+                  style={{
+                    backgroundColor: `${themeColors.surface}CC`,
+                    borderColor: themeColors.border,
+                  }}
+                >
                   <div
                     className="flex h-9 w-9 items-center justify-center rounded-xl"
                     style={{
@@ -216,11 +288,21 @@ export function UnitView({
                   </div>
 
                   <div>
-                    <p className="text-sm font-semibold text-[#1E2430]">
+                    <p
+                      className="text-sm font-semibold"
+                      style={{
+                        color: themeColors.foreground,
+                      }}
+                    >
                       {materialCount}
                     </p>
 
-                    <p className="text-[11px] text-[#9CA3AF]">
+                    <p
+                      className="text-[11px]"
+                      style={{
+                        color: themeColors.subtleText,
+                      }}
+                    >
                       {materialCount === 1
                         ? "Material disponible"
                         : "Materiales disponibles"}
@@ -231,6 +313,7 @@ export function UnitView({
             </div>
 
             {/* Imagen */}
+
             <div className="relative">
               <div
                 className="absolute inset-4 rounded-[2rem] blur-2xl opacity-20"
@@ -239,7 +322,13 @@ export function UnitView({
                 }}
               />
 
-              <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] border border-white bg-[#FAFAFB] shadow-xl">
+              <div
+                className="relative aspect-[4/3] overflow-hidden rounded-[2rem] border shadow-xl"
+                style={{
+                  backgroundColor: themeColors.softSurface,
+                  borderColor: themeColors.border,
+                }}
+              >
                 {unit.imageUrl ? (
                   <img
                     src={unit.imageUrl}
@@ -258,15 +347,21 @@ export function UnitView({
                     }}
                   >
                     <div
-                      className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm"
+                      className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-sm"
                       style={{
+                        backgroundColor: themeColors.surface,
                         color: primaryColor,
                       }}
                     >
                       <BookOpen className="h-7 w-7" />
                     </div>
 
-                    <p className="mt-4 text-sm font-medium text-[#6B7280]">
+                    <p
+                      className="mt-4 text-sm font-medium"
+                      style={{
+                        color: themeColors.muted,
+                      }}
+                    >
                       Unidad {unit.number}
                     </p>
                   </div>
@@ -293,46 +388,75 @@ export function UnitView({
             Unidad temática {unit.number}
           </span>
 
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[#1E2430] md:text-4xl">
+          <h2
+            className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl"
+            style={{
+              color: themeColors.foreground,
+            }}
+          >
             Explora esta unidad
           </h2>
 
-          <p className="mt-4 text-sm leading-7 text-[#6B7280]">
-            Selecciona un tema para consultar los materiales
-            disponibles.
+          <p
+            className="mt-4 text-sm leading-7"
+            style={{
+              color: themeColors.muted,
+            }}
+          >
+            Selecciona un tema para consultar los materiales disponibles.
           </p>
         </div>
 
         {visibleTopics.length > 0 ? (
-          <div className="mt-14 grid gap-5 md:grid-cols-2">
+          <div className="mt-14 columns-1 gap-5 md:columns-2">
             {visibleTopics.map((topic, index) => {
-              const topicMaterialCount =
-                topic.materials?.length ?? 0;
+              const topicMaterialCount = topic.materials?.length ?? 0;
 
-              const isFirst = index === 0;
+              const cardSize =
+                index % 4 === 0
+                  ? "min-h-[320px]"
+                  : index % 4 === 1
+                    ? "min-h-[260px]"
+                    : index % 4 === 2
+                      ? "min-h-[290px]"
+                      : "min-h-[240px]";
 
               return (
                 <button
                   key={topic.id}
                   type="button"
-                  onClick={() =>
-                    onTopicSelect?.(topic)
-                  }
-                  className="group relative overflow-hidden rounded-[2rem] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DCD6FF] hover:shadow-xl"
+                  onClick={() => onTopicSelect?.(topic)}
+                  className={`group relative mb-5 block w-full break-inside-avoid overflow-hidden rounded-[2rem] border border-[#E5E7EB] bg-white p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[#DCD6FF] hover:shadow-xl ${cardSize}`}
+                  style={{
+                    backgroundColor:
+                      index % 3 === 0
+                        ? `${secondaryColor}55`
+                        : index % 3 === 1
+                          ? `${primaryColor}10`
+                          : themeColors.surface,
+                    borderColor: themeColors.border,
+                  }}
+
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.borderColor = `${primaryColor}55`;
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.borderColor = themeColors.border;
+                  }}
                 >
                   {/* Decoración */}
+
                   <div
                     className="absolute -right-16 -top-16 h-36 w-36 rounded-full opacity-10 transition-transform duration-500 group-hover:scale-125"
                     style={{
                       backgroundColor:
-                        isFirst
-                          ? primaryColor
-                          : secondaryColor,
+                        index === 0 ? primaryColor : secondaryColor,
                     }}
                   />
 
                   <div className="relative">
                     {/* Encabezado */}
+
                     <div className="flex items-start justify-between gap-4">
                       <div
                         className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold"
@@ -345,7 +469,10 @@ export function UnitView({
                       </div>
 
                       <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F8F9FB] transition-all duration-300 group-hover:bg-[#F3F0FF]"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all duration-300"
+                        style={{
+                          backgroundColor: themeColors.softSurface,
+                        }}
                       >
                         <ArrowRight
                           className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
@@ -357,12 +484,24 @@ export function UnitView({
                     </div>
 
                     {/* Título */}
-                    <h3 className="mt-6 max-w-lg text-xl font-semibold leading-7 text-[#1E2430]">
+
+                    <h3
+                      className="mt-6 max-w-lg text-xl font-semibold leading-7"
+                      style={{
+                        color: themeColors.foreground,
+                      }}
+                    >
                       {topic.title}
                     </h3>
 
                     {/* Información */}
-                    <div className="mt-6 flex items-center gap-2 text-xs text-[#6B7280]">
+
+                    <div
+                      className="mt-6 flex items-center gap-2 text-xs"
+                      style={{
+                        color: themeColors.muted,
+                      }}
+                    >
                       <div
                         className="flex h-7 w-7 items-center justify-center rounded-lg"
                         style={{
@@ -386,7 +525,13 @@ export function UnitView({
                     </div>
 
                     {/* Línea inferior */}
-                    <div className="mt-6 flex items-center justify-between border-t border-[#F0F1F3] pt-5">
+
+                    <div
+                      className="mt-6 flex items-center justify-between border-t pt-5"
+                      style={{
+                        borderColor: themeColors.border,
+                      }}
+                    >
                       <span
                         className="text-xs font-semibold"
                         style={{
@@ -396,9 +541,13 @@ export function UnitView({
                         Explorar tema
                       </span>
 
-                      <span className="text-[11px] text-[#9CA3AF]">
-                        Tema {index + 1} de{" "}
-                        {visibleTopics.length}
+                      <span
+                        className="text-[11px]"
+                        style={{
+                          color: themeColors.subtleText,
+                        }}
+                      >
+                        Tema {index + 1} de {visibleTopics.length}
                       </span>
                     </div>
                   </div>
@@ -407,31 +556,72 @@ export function UnitView({
             })}
           </div>
         ) : (
-          <div className="mx-auto mt-14 max-w-xl rounded-3xl border border-dashed border-[#D8DCE3] bg-[#FAFAFB] px-6 py-16 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF2F7]">
-              <BookOpen className="h-6 w-6 text-[#9CA3AF]" />
+          <div
+            className="mx-auto mt-14 max-w-xl rounded-3xl border border-dashed px-6 py-16 text-center"
+            style={{
+              borderColor: themeColors.border,
+              backgroundColor: themeColors.softSurface,
+            }}
+          >
+            <div
+              className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl"
+              style={{
+                backgroundColor: `${primaryColor}12`,
+              }}
+            >
+              <BookOpen
+                className="h-6 w-6"
+                style={{
+                  color: themeColors.subtleText,
+                }}
+              />
             </div>
 
-            <h3 className="mt-4 text-base font-semibold text-[#1E2430]">
+            <h3
+              className="mt-4 text-base font-semibold"
+              style={{
+                color: themeColors.foreground,
+              }}
+            >
               No hay temas disponibles
             </h3>
 
-            <p className="mt-2 text-sm leading-6 text-[#6B7280]">
-              Esta unidad todavía no tiene temas con
-              materiales disponibles.
+            <p
+              className="mt-2 text-sm leading-6"
+              style={{
+                color: themeColors.muted,
+              }}
+            >
+              Esta unidad todavía no tiene temas con materiales disponibles.
             </p>
           </div>
         )}
 
         {/* Volver */}
+
         <div className="mt-14 flex justify-center">
           <button
             type="button"
             onClick={onBack}
-            className="group inline-flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white px-5 py-3 text-sm font-medium text-[#6B7280] transition hover:border-[#D8DCE3] hover:bg-[#FAFAFB] hover:text-[#1E2430]"
+            className="group inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition"
+            style={{
+              backgroundColor: themeColors.surface,
+              borderColor: themeColors.border,
+              color: themeColors.muted,
+            }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.borderColor = `${primaryColor}55`;
+              event.currentTarget.style.backgroundColor =
+                themeColors.softSurface;
+              event.currentTarget.style.color = themeColors.foreground;
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.borderColor = themeColors.border;
+              event.currentTarget.style.backgroundColor = themeColors.surface;
+              event.currentTarget.style.color = themeColors.muted;
+            }}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-
             Volver a unidades
           </button>
         </div>

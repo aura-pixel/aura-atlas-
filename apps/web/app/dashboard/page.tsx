@@ -4,6 +4,8 @@ import { UniversityPage } from "@/components/dashboard/universities/university-p
 
 import type { University } from "@/types/university";
 
+export const dynamic = "force-dynamic";
+
 export default async function Page() {
 
   const universities =

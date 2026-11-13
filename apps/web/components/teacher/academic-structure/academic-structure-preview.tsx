@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { AcademicStructure } from "@/types/academic-structure.types";
+import type { AcademicStructure } from "@/components/teacher/subject/types";
 import { Button } from "@/components/ui/button";
 
 interface AcademicStructurePreviewProps {

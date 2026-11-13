@@ -33,7 +33,7 @@ export function CareerSettingsPage({
       </Link>
 
       <EntityHero
-        image={career.logoUrl}
+        image={career.logoUrl ?? undefined}
         title={career.name}
         subtitle={career.abbreviation ?? ""}
         description="Configura y administra el contenido de esta carrera."
